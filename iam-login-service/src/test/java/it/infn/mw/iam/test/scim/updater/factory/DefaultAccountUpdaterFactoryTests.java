@@ -16,7 +16,7 @@ import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_GIVEN_
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_PASSWORD;
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_PICTURE;
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_USERNAME;
-import static it.infn.mw.iam.test.TestUtils.x509Certs;
+import static it.infn.mw.iam.test.X509Utils.x509Certs;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isIn;
 import static org.junit.Assert.assertThat;
@@ -58,6 +58,7 @@ import it.infn.mw.iam.persistence.model.IamSshKey;
 import it.infn.mw.iam.persistence.model.IamUserInfo;
 import it.infn.mw.iam.persistence.model.IamX509Certificate;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
+import it.infn.mw.iam.test.X509Utils;
 import it.infn.mw.iam.test.util.JacksonUtils;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -316,7 +317,7 @@ public class DefaultAccountUpdaterFactoryTests {
     account.setSamlIds(Lists.newArrayList(new IamSamlId(OLD, OLD)));
     account.setSshKeys(Lists.newArrayList(new IamSshKey(OLD)));
     account.setX509Certificates(
-        Lists.newArrayList(new IamX509Certificate(x509Certs.get(0).certificate)));
+        Lists.newArrayList(new IamX509Certificate(X509Utils.x509Certs.get(0).certificate)));
 
     when(repo.findByOidcId(OLD, OLD)).thenReturn(Optional.of(account));
     when(repo.findBySamlId(OLD, OLD)).thenReturn(Optional.of(account));

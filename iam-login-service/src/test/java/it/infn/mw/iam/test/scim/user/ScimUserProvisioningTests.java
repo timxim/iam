@@ -1,5 +1,7 @@
 package it.infn.mw.iam.test.scim.user;
 
+import static it.infn.mw.iam.test.SshKeyUtils.sshKeys;
+import static it.infn.mw.iam.test.X509Utils.x509Certs;
 import static com.jayway.restassured.matcher.ResponseAwareMatcherComposer.and;
 import static com.jayway.restassured.matcher.RestAssuredMatchers.endsWithPath;
 import static it.infn.mw.iam.test.TestUtils.passwordTokenGetter;
@@ -365,7 +367,7 @@ public class ScimUserProvisioningTests {
     ScimUser user = ScimUser.builder("user_with_sshkey")
       .buildEmail("test_user@test.org")
       .buildName("User", "With ssh key Account")
-      .buildSshKey("Personal", TestUtils.sshKeys.get(0).key, null, true)
+      .buildSshKey("Personal", sshKeys.get(0).key, null, true)
       .active(true)
       .build();
 
@@ -373,9 +375,9 @@ public class ScimUserProvisioningTests {
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys", hasSize(equalTo(1)))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].display", equalTo("Personal"))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].value",
-          equalTo(TestUtils.sshKeys.get(0).key))
+          equalTo(sshKeys.get(0).key))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].fingerprint",
-          equalTo(TestUtils.sshKeys.get(0).fingerprintSHA256))
+          equalTo(sshKeys.get(0).fingerprintSHA256))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].primary", equalTo(true))
       .extract()
       .as(ScimUser.class);
@@ -384,9 +386,9 @@ public class ScimUserProvisioningTests {
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys", hasSize(equalTo(1)))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].display", equalTo("Personal"))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].value",
-          equalTo(TestUtils.sshKeys.get(0).key))
+          equalTo(sshKeys.get(0).key))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].fingerprint",
-          equalTo(TestUtils.sshKeys.get(0).fingerprintSHA256))
+          equalTo(sshKeys.get(0).fingerprintSHA256))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].primary", equalTo(true));
 
     restUtils.doDelete(creationResult.getMeta().getLocation());
@@ -399,7 +401,7 @@ public class ScimUserProvisioningTests {
       .buildEmail("test_user@test.org")
       .buildName("User", "With ssh key Account")
       .indigoUserInfo(ScimIndigoUser.builder()
-        .addSshKey(ScimSshKey.builder().value(TestUtils.sshKeys.get(0).key).build())
+        .addSshKey(ScimSshKey.builder().value(sshKeys.get(0).key).build())
         .build())
       .active(true)
       .build();
@@ -409,9 +411,9 @@ public class ScimUserProvisioningTests {
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].display",
           equalTo(user.getUserName() + "'s personal ssh key"))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].value",
-          equalTo(TestUtils.sshKeys.get(0).key))
+          equalTo(sshKeys.get(0).key))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].fingerprint",
-          equalTo(TestUtils.sshKeys.get(0).fingerprintSHA256))
+          equalTo(sshKeys.get(0).fingerprintSHA256))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].primary", equalTo(true))
       .extract()
       .as(ScimUser.class);
@@ -425,7 +427,7 @@ public class ScimUserProvisioningTests {
     ScimUser user = ScimUser.builder("user_with_sshkey")
       .buildEmail("test_user@test.org")
       .buildName("User", "With ssh key")
-      .buildSshKey("Personal", TestUtils.sshKeys.get(0).key, null, true)
+      .buildSshKey("Personal", sshKeys.get(0).key, null, true)
       .active(true)
       .build();
 
@@ -433,16 +435,16 @@ public class ScimUserProvisioningTests {
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys", hasSize(equalTo(1)))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].display", equalTo("Personal"))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].value",
-          equalTo(TestUtils.sshKeys.get(0).key))
+          equalTo(sshKeys.get(0).key))
       .body(ScimConstants.INDIGO_USER_SCHEMA + ".sshKeys[0].fingerprint",
-          equalTo(TestUtils.sshKeys.get(0).fingerprintSHA256))
+          equalTo(sshKeys.get(0).fingerprintSHA256))
       .extract()
       .as(ScimUser.class);
 
     ScimUser anotherUser = ScimUser.builder("another_user_with_sshkey")
       .buildEmail("another_test_user@test.org")
       .buildName("Another User", "With ssh key")
-      .buildSshKey("Personal", TestUtils.sshKeys.get(0).key, null, true)
+      .buildSshKey("Personal", sshKeys.get(0).key, null, true)
       .active(true)
       .build();
 
@@ -500,14 +502,14 @@ public class ScimUserProvisioningTests {
     ScimUser user = ScimUser.builder("user_with_x509")
       .buildEmail("test_user@test.org")
       .buildName("User", "With x509 Certificate")
-      .buildX509Certificate("Personal1", TestUtils.x509Certs.get(0).certificate, false)
+      .buildX509Certificate("Personal1", x509Certs.get(0).certificate, false)
       .active(true)
       .build();
 
     ScimUser creationResult = restUtils.doPost("/scim/Users/", user)
       .body("x509Certificates", hasSize(equalTo(1)))
       .body("x509Certificates[0].display", equalTo("Personal1"))
-      .body("x509Certificates[0].value", equalTo(TestUtils.x509Certs.get(0).certificate))
+      .body("x509Certificates[0].value", equalTo(x509Certs.get(0).certificate))
       .body("x509Certificates[0].primary", equalTo(true))
       .extract()
       .as(ScimUser.class);
@@ -521,18 +523,18 @@ public class ScimUserProvisioningTests {
     ScimUser user = ScimUser.builder("user_with_x509")
       .buildEmail("test_user@test.org")
       .buildName("User", "With x509 Certificate")
-      .buildX509Certificate("Personal1", TestUtils.x509Certs.get(0).certificate, false)
-      .buildX509Certificate("Personal2", TestUtils.x509Certs.get(1).certificate, true)
+      .buildX509Certificate("Personal1", x509Certs.get(0).certificate, false)
+      .buildX509Certificate("Personal2", x509Certs.get(1).certificate, true)
       .active(true)
       .build();
 
     ScimUser creationResult = restUtils.doPost("/scim/Users/", user)
       .body("x509Certificates", hasSize(equalTo(2)))
       .body("x509Certificates[0].display", equalTo("Personal1"))
-      .body("x509Certificates[0].value", equalTo(TestUtils.x509Certs.get(0).certificate))
+      .body("x509Certificates[0].value", equalTo(x509Certs.get(0).certificate))
       .body("x509Certificates[0].primary", equalTo(false))
       .body("x509Certificates[1].display", equalTo("Personal2"))
-      .body("x509Certificates[1].value", equalTo(TestUtils.x509Certs.get(1).certificate))
+      .body("x509Certificates[1].value", equalTo(x509Certs.get(1).certificate))
       .body("x509Certificates[1].primary", equalTo(true))
       .extract()
       .as(ScimUser.class);
@@ -546,18 +548,18 @@ public class ScimUserProvisioningTests {
     ScimUser user = ScimUser.builder("user_with_x509")
       .buildEmail("test_user@test.org")
       .buildName("User", "With x509 Certificate")
-      .buildX509Certificate("Personal1", TestUtils.x509Certs.get(0).certificate, false)
-      .buildX509Certificate("Personal2", TestUtils.x509Certs.get(1).certificate, false)
+      .buildX509Certificate("Personal1", x509Certs.get(0).certificate, false)
+      .buildX509Certificate("Personal2", x509Certs.get(1).certificate, false)
       .active(true)
       .build();
 
     ScimUser creationResult = restUtils.doPost("/scim/Users/", user)
       .body("x509Certificates", hasSize(equalTo(2)))
       .body("x509Certificates[0].display", equalTo("Personal1"))
-      .body("x509Certificates[0].value", equalTo(TestUtils.x509Certs.get(0).certificate))
+      .body("x509Certificates[0].value", equalTo(x509Certs.get(0).certificate))
       .body("x509Certificates[0].primary", equalTo(true))
       .body("x509Certificates[1].display", equalTo("Personal2"))
-      .body("x509Certificates[1].value", equalTo(TestUtils.x509Certs.get(1).certificate))
+      .body("x509Certificates[1].value", equalTo(x509Certs.get(1).certificate))
       .body("x509Certificates[1].primary", equalTo(false))
       .extract()
       .as(ScimUser.class);

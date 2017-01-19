@@ -1,6 +1,8 @@
 package it.infn.mw.iam.test.scim.me.patch;
 
+import static it.infn.mw.iam.test.SshKeyUtils.sshKeys;
 import static it.infn.mw.iam.test.TestUtils.passwordTokenGetter;
+import static it.infn.mw.iam.test.X509Utils.x509Certs;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -267,7 +269,7 @@ public class ScimMeEndpointPatchAddTests {
   public void testPatchAddSsHKeyNotSupported() {
 
     ScimSshKey NEW_SSH_KEY =
-        ScimSshKey.builder().display("ssh-key").value(TestUtils.sshKeys.get(0).key).build();
+        ScimSshKey.builder().display("ssh-key").value(sshKeys.get(0).key).build();
 
     ScimUserPatchRequest patchRequest =
         ScimUserPatchRequest.builder().add(ScimUser.builder().addSshKey(NEW_SSH_KEY).build()).build();
@@ -279,7 +281,7 @@ public class ScimMeEndpointPatchAddTests {
   public void testPatchAddX509CertificateNotSupported() {
 
     ScimX509Certificate NEW_X509_CERT =
-        ScimX509Certificate.builder().display("x509-cert").value(TestUtils.x509Certs.get(0).certificate).build();
+        ScimX509Certificate.builder().display("x509-cert").value(x509Certs.get(0).certificate).build();
 
     ScimUserPatchRequest patchRequest =
         ScimUserPatchRequest.builder().add(ScimUser.builder().addX509Certificate(NEW_X509_CERT).build()).build();

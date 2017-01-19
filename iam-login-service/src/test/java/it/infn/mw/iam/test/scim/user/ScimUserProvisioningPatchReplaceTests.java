@@ -1,5 +1,10 @@
 package it.infn.mw.iam.test.scim.user;
 
+import static it.infn.mw.iam.test.OidcIdUtils.oidcIds;
+import static it.infn.mw.iam.test.SamlIdUtils.samlIds;
+import static it.infn.mw.iam.test.SshKeyUtils.sshKeys;
+import static it.infn.mw.iam.test.TestUtils.getAccessToken;
+import static it.infn.mw.iam.test.X509Utils.x509Certs;
 import static org.hamcrest.Matchers.containsString;
 
 import java.util.ArrayList;
@@ -25,7 +30,6 @@ import it.infn.mw.iam.api.scim.model.ScimUser;
 import it.infn.mw.iam.api.scim.model.ScimUserPatchRequest;
 import it.infn.mw.iam.api.scim.model.ScimX509Certificate;
 import it.infn.mw.iam.test.ScimRestUtils;
-import it.infn.mw.iam.test.TestUtils;
 import it.infn.mw.iam.test.util.JacksonUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,31 +56,31 @@ public class ScimUserProvisioningPatchReplaceTests {
             .buildEmail("lennon@email.test")
             .buildName("John", "Lennon")
             .addOidcId(ScimOidcId.builder()
-              .issuer(TestUtils.oidcIds.get(0).issuer)
-              .subject(TestUtils.oidcIds.get(0).subject)
+              .issuer(oidcIds.get(0).issuer)
+              .subject(oidcIds.get(0).subject)
               .build())
             .addSshKey(ScimSshKey.builder()
-              .value(TestUtils.sshKeys.get(0).key)
-              .fingerprint(TestUtils.sshKeys.get(0).fingerprintSHA256)
+              .value(sshKeys.get(0).key)
+              .fingerprint(sshKeys.get(0).fingerprintSHA256)
               .primary(true)
               .build())
             .addSshKey(ScimSshKey.builder()
-              .value(TestUtils.sshKeys.get(1).key)
-              .fingerprint(TestUtils.sshKeys.get(1).fingerprintSHA256)
+              .value(sshKeys.get(1).key)
+              .fingerprint(sshKeys.get(1).fingerprintSHA256)
               .primary(false)
               .build())
             .addSamlId(ScimSamlId.builder()
-              .idpId(TestUtils.samlIds.get(0).idpId)
-              .userId(TestUtils.samlIds.get(0).userId)
+              .idpId(samlIds.get(0).idpId)
+              .userId(samlIds.get(0).userId)
               .build())
             .addX509Certificate(ScimX509Certificate.builder()
-              .display(TestUtils.x509Certs.get(0).display)
-              .value(TestUtils.x509Certs.get(0).certificate)
+              .display(x509Certs.get(0).display)
+              .value(x509Certs.get(0).certificate)
               .primary(true)
               .build())
             .addX509Certificate(ScimX509Certificate.builder()
-              .display(TestUtils.x509Certs.get(1).display)
-              .value(TestUtils.x509Certs.get(1).certificate)
+              .display(x509Certs.get(1).display)
+              .value(x509Certs.get(1).certificate)
               .primary(false)
               .build())
             .build())
@@ -86,7 +90,7 @@ public class ScimUserProvisioningPatchReplaceTests {
   @Before
   public void setupTest() {
 
-    accessToken = TestUtils.getAccessToken("scim-client-rw", "secret", "scim:read scim:write");
+    accessToken = getAccessToken("scim-client-rw", "secret", "scim:read scim:write");
     restUtils = ScimRestUtils.getInstance(accessToken);
 
     initTestUsers();

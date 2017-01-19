@@ -14,7 +14,7 @@ import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.api.scim.converter.X509CertificateConverter;
 import it.infn.mw.iam.api.scim.model.ScimX509Certificate;
 import it.infn.mw.iam.persistence.model.IamX509Certificate;
-import it.infn.mw.iam.test.TestUtils;
+import it.infn.mw.iam.test.X509Utils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = IamLoginService.class)
@@ -29,7 +29,7 @@ public class ScimX509CertificateConverterTests {
   public void testConversionFromScimToIamWithCertificate() {
 
     ScimX509Certificate scimCert =
-        ScimX509Certificate.builder().value(TestUtils.x509Certs.get(0).certificate).build();
+        ScimX509Certificate.builder().value(X509Utils.x509Certs.get(0).certificate).build();
 
     IamX509Certificate iamCert = converter.fromScim(scimCert);
 
@@ -44,7 +44,7 @@ public class ScimX509CertificateConverterTests {
   public void testConversionFromScimToIamWithCertificateAndLabel() {
 
     ScimX509Certificate scimCert = ScimX509Certificate.builder()
-      .value(TestUtils.x509Certs.get(0).certificate)
+      .value(X509Utils.x509Certs.get(0).certificate)
       .display("This is the label")
       .build();
 
