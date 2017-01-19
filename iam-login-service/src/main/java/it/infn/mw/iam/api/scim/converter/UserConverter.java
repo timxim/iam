@@ -138,6 +138,7 @@ public class UserConverter implements Converter<ScimUser, IamAccount> {
     }
 
     account.setUserInfo(userInfo);
+    userInfo.setIamAccount(account);
 
     return account;
   }
