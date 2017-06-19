@@ -37,7 +37,7 @@ public class IntrospectionEndpointAuthenticationTests {
   }
 
   @Test
-  public void testTokenIntrospectionEndpointBasicAuthentication() {
+  public void testTokenIntrospectionEndpointBasicAuthenticationSuccess() {
     // @formatter:off
     given()
       .port(8080)
@@ -55,7 +55,7 @@ public class IntrospectionEndpointAuthenticationTests {
   }
 
   @Test
-  public void testTokenIntrospectionEndpointFormAuthentication() {
+  public void testTokenIntrospectionEndpointFormAuthenticationSuccess() {
     // @formatter:off
     given()
       .port(8080)
@@ -67,10 +67,28 @@ public class IntrospectionEndpointAuthenticationTests {
       .post("/introspect")
     .then()
       .log().all(true)
-      .statusCode(HttpStatus.UNAUTHORIZED.value());
+      .statusCode(HttpStatus.OK.value())
+      .body("active", equalTo(true));
     // @formatter:on
   }
 
+  @Test
+  public void testTokenIntrospectionEndpointFormAuthenticationFailue() {
+    // @formatter:off
+    given()
+      .port(8080)
+      .formParam("token", accessToken)
+      .formParam("client_id", "fake-client-id")
+      .formParam("client_secret", "fake-secret")
+      .log().all(true)
+    .when()
+      .post("/introspect")
+    .then()
+      .log().all(true)
+      .statusCode(HttpStatus.UNAUTHORIZED.value());
+    // @formatter:on
+  }
+  
   @Test
   public void testTokenIntrospectionEndpointNoAuthenticationFailure() {
     // @formatter:off

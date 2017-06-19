@@ -13,6 +13,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -21,12 +22,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter;
 import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -360,6 +363,34 @@ public class SecurityConfig {
     @Autowired
     private CorsFilter corsFilter;
 
+    public AuthenticationSuccessHandler noOpSuccessHandler() {
+      return (request, response, authentication) -> {
+      };
+    }
+
+    public AuthenticationFailureHandler massageBadCredentialsExceptionFailureHandler() {
+      return (request, response, exception) -> {
+        if (exception instanceof BadCredentialsException) {
+          exception = new BadCredentialsException(exception.getMessage(),
+              new BadClientCredentialsException());
+        }
+        authenticationEntryPoint.commence(request, response, exception);
+      };
+    }
+
+    public ClientCredentialsTokenEndpointFilter introspectFormLoginAuthenticationFilter()
+        throws Exception {
+      ClientCredentialsTokenEndpointFilter filter =
+          new ClientCredentialsTokenEndpointFilter("/introspect");
+
+      filter.setAuthenticationEntryPoint(authenticationEntryPoint);
+      filter.setAuthenticationManager(authenticationManager());
+      filter.setAuthenticationFailureHandler(massageBadCredentialsExceptionFailureHandler());
+      filter.setAuthenticationSuccessHandler(noOpSuccessHandler());
+      
+      return filter;
+    }
+
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
 
@@ -375,8 +406,9 @@ public class SecurityConfig {
           .authenticationEntryPoint(authenticationEntryPoint)
         .and()
           .addFilterBefore(corsFilter, SecurityContextPersistenceFilter.class)
-            .exceptionHandling()
-          .authenticationEntryPoint(authenticationEntryPoint)
+          .addFilterBefore(introspectFormLoginAuthenticationFilter(), BasicAuthenticationFilter.class)
+          .exceptionHandling()
+            .authenticationEntryPoint(authenticationEntryPoint)
         .and()
           .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
