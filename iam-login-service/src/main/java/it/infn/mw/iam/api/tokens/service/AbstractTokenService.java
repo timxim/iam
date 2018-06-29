@@ -16,19 +16,28 @@
 package it.infn.mw.iam.api.tokens.service;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.common.OffsetPageable;
 import it.infn.mw.iam.api.tokens.service.paging.TokensPageRequest;
 
 public abstract class AbstractTokenService<T> implements TokenService<T> {
 
+  public static final Logger log = LoggerFactory.getLogger(AbstractTokenService.class);
 
   protected OffsetPageable getOffsetPageable(TokensPageRequest pageRequest) {
 
-    if (pageRequest.getCount() == 0) {
-      return new OffsetPageable(0, 1);
-    }
-    return new OffsetPageable(pageRequest.getStartIndex(), pageRequest.getCount());
+    return new OffsetPageable(pageRequest.getStartIndex() - 1, pageRequest.getCount(), getSort());
+  }
+
+  private Sort getSort() {
+
+    Sort.Order expirationDesc = new Order(Sort.Direction.DESC, "expiration");
+    Sort.Order idDesc = new Order(Sort.Direction.DESC, "id");
+    return new Sort(expirationDesc, idDesc);
   }
 
   protected boolean isCountRequest(TokensPageRequest pageRequest) {

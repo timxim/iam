@@ -21,4 +21,12 @@ public interface TokensPageRequest {
 
   public int getStartIndex();
 
+  public String getSortBy();
+
+  public String getSortDirection();
+
+  public String getUserId();
+
+  public String getClientId();
+
 }

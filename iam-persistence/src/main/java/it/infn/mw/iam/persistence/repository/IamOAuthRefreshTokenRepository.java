@@ -34,26 +34,26 @@ public interface IamOAuthRefreshTokenRepository
 
   @Query("select t from OAuth2RefreshTokenEntity t "
       + "where (t.authenticationHolder.userAuth.name = :userId) "
-      + "and (t.expiration is NULL or t.expiration > :timestamp) order by t.expiration")
+      + "and (t.expiration is NULL or t.expiration > :timestamp)")
   Page<OAuth2RefreshTokenEntity> findValidRefreshTokensForUser(@Param("userId") String userId,
       @Param("timestamp") Date timestamp, Pageable op);
 
   @Query("select t from OAuth2RefreshTokenEntity t "
       + "where (t.authenticationHolder.clientId = :clientId) "
-      + "and (t.expiration is NULL or t.expiration > :timestamp) order by t.expiration")
+      + "and (t.expiration is NULL or t.expiration > :timestamp)")
   Page<OAuth2RefreshTokenEntity> findValidRefreshTokensForClient(@Param("clientId") String clientId,
       @Param("timestamp") Date timestamp, Pageable op);
 
   @Query("select t from OAuth2RefreshTokenEntity t "
       + "where (t.authenticationHolder.userAuth.name = :userId) "
       + "and (t.authenticationHolder.clientId = :clientId) "
-      + "and (t.expiration is NULL or t.expiration > :timestamp) order by t.expiration")
+      + "and (t.expiration is NULL or t.expiration > :timestamp)")
   Page<OAuth2RefreshTokenEntity> findValidRefreshTokensForUserAndClient(
       @Param("userId") String userId, @Param("clientId") String clientId,
       @Param("timestamp") Date timestamp, Pageable op);
 
   @Query("select t from OAuth2RefreshTokenEntity t "
-      + "where (t.expiration is NULL or t.expiration > :timestamp) order by t.expiration")
+      + "where (t.expiration is NULL or t.expiration > :timestamp)")
   Page<OAuth2RefreshTokenEntity> findAllValidRefreshTokens(@Param("timestamp") Date timestamp,
       Pageable op);
 

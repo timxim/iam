@@ -19,10 +19,18 @@ public class DefaultTokensPageRequest implements TokensPageRequest {
 
   private final int count;
   private final int startIndex;
+  private final String sortBy;
+  private final String sortDirection;
+  private final String userId;
+  private final String clientId;
 
   private DefaultTokensPageRequest(Builder b) {
     this.count = b.count;
     this.startIndex = b.startIndex;
+    this.sortBy = b.sortBy;
+    this.sortDirection = b.sortDirection;
+    this.userId = b.userId;
+    this.clientId = b.clientId;
   }
 
   @Override
@@ -37,10 +45,38 @@ public class DefaultTokensPageRequest implements TokensPageRequest {
     return startIndex;
   }
 
+  @Override
+  public String getSortBy() {
+
+    return sortBy;
+  }
+
+  @Override
+  public String getSortDirection() {
+
+    return sortDirection;
+  }
+
+  @Override
+  public String getUserId() {
+
+    return userId;
+  }
+
+  @Override
+  public String getClientId() {
+
+    return clientId;
+  }
+
   public static class Builder {
 
     private int count;
     private int startIndex;
+    private String sortBy;
+    private String sortDirection;
+    private String userId;
+    private String clientId;
 
     public Builder count(int count) {
 
@@ -51,6 +87,30 @@ public class DefaultTokensPageRequest implements TokensPageRequest {
     public Builder startIndex(int startIndex) {
 
       this.startIndex = startIndex;
+      return this;
+    }
+
+    public Builder sortBy(String sortBy) {
+
+      this.sortBy = sortBy;
+      return this;
+    }
+
+    public Builder sortDirection(String sortDirection) {
+
+      this.sortDirection = sortDirection;
+      return this;
+    }
+
+    public Builder userId(String userId) {
+
+      this.userId = userId;
+      return this;
+    }
+
+    public Builder clientId(String clientId) {
+
+      this.clientId = clientId;
       return this;
     }
 

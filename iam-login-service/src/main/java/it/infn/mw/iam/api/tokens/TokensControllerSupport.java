@@ -37,11 +37,15 @@ public class TokensControllerSupport {
   public static final String APPLICATION_JSON_CONTENT_TYPE = "application/json";
   public static final int TOKENS_MAX_PAGE_SIZE = 20;
 
-  protected TokensPageRequest buildTokensPageRequest(Integer count, Integer startIndex) {
-    return buildPageRequest(count, startIndex, TOKENS_MAX_PAGE_SIZE);
+  protected TokensPageRequest buildTokensPageRequest(Integer count, Integer startIndex,
+      String clientId, String userId, String sortBy, String sortDirection) {
+
+    return buildPageRequest(count, startIndex, TOKENS_MAX_PAGE_SIZE, clientId, userId, sortBy,
+        sortDirection);
   }
 
-  private TokensPageRequest buildPageRequest(Integer count, Integer startIndex, int maxPageSize) {
+  private TokensPageRequest buildPageRequest(Integer count, Integer startIndex, int maxPageSize,
+      String clientId, String userId, String sortBy, String sortDirection) {
 
     int validCount = 0;
     int validStartIndex = 1;
@@ -70,7 +74,11 @@ public class TokensControllerSupport {
     }
 
     return new DefaultTokensPageRequest.Builder().count(validCount)
-        .startIndex(validStartIndex - 1)
+        .startIndex(validStartIndex)
+        .sortBy(sortBy)
+        .sortDirection(sortDirection)
+        .clientId(clientId)
+        .userId(userId)
         .build();
   }
 

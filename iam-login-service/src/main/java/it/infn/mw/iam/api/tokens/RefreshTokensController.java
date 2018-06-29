@@ -56,7 +56,8 @@ public class RefreshTokensController extends TokensControllerSupport {
       @RequestParam(required = false) String clientId,
       @RequestParam(required = false) final String attributes) {
 
-    TokensPageRequest pr = buildTokensPageRequest(count, startIndex);
+    TokensPageRequest pr =
+        buildTokensPageRequest(count, startIndex, clientId, userId, "expiration", "desc");
     ListResponseDTO<RefreshToken> results = getFilteredList(pr, userId, clientId);
     return filterAttributes(results, attributes);
   }
