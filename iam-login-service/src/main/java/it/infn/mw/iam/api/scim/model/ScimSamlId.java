@@ -15,6 +15,7 @@
  */
 package it.infn.mw.iam.api.scim.model;
 
+import javax.annotation.Generated;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -75,6 +76,7 @@ public class ScimSamlId {
     return new Builder();
   }
 
+  @Generated("eclipse")
   @Override
   public int hashCode() {
     int prime = 31;
@@ -84,6 +86,7 @@ public class ScimSamlId {
     return result;
   }
 
+  @Generated("eclipse")
   @Override
   public boolean equals(Object obj) {
     if (this == obj)

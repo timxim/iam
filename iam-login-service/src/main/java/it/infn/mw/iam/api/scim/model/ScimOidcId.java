@@ -15,6 +15,7 @@
  */
 package it.infn.mw.iam.api.scim.model;
 
+import javax.annotation.Generated;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -80,6 +81,7 @@ public class ScimOidcId {
     }
   }
 
+  @Generated("eclipse")
   @Override
   public int hashCode() {
     int prime = 31;
@@ -89,6 +91,7 @@ public class ScimOidcId {
     return result;
   }
 
+  @Generated("eclipse")
   @Override
   public boolean equals(Object obj) {
     if (this == obj)

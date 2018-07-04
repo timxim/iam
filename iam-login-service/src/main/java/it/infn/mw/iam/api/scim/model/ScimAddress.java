@@ -15,6 +15,7 @@
  */
 package it.infn.mw.iam.api.scim.model;
 
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -106,6 +107,7 @@ public class ScimAddress {
     return primary;
   }
 
+  @Generated("eclipse")
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -121,6 +123,7 @@ public class ScimAddress {
     return result;
   }
 
+  @Generated("eclipse")
   @Override
   public boolean equals(Object obj) {
     if (this == obj)
