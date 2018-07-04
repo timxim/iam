@@ -59,7 +59,6 @@ public abstract class AbstractTokenService<T> implements TokenService<T> {
         sort = new Sort(new Order(direction, "expiration"), idDesc);
     }
 
-    log.info("Sort: {}", sort);
     return sort;
   }
 
