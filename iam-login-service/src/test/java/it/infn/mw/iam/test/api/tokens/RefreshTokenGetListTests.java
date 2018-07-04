@@ -461,4 +461,136 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     assertThat(atl.getStartIndex(), equalTo(1));
     assertThat(atl.getItemsPerPage(), equalTo(0));
   }
+
+
+  @Test
+  public void getTokensSortedByClientName() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+    OAuth2RefreshTokenEntity rt1 =
+        buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByClient().sortDirectionAsc().build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getClient().getClientId(), equalTo(TEST_CLIENT2_ID));
+    assertThat(rtl.getResources().get(1).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(rtl.getResources().get(2).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+
+    params =
+        MultiValueMapBuilder.builder().sortByClient().sortDirectionDesc().build();
+
+    rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(rtl.getResources().get(1).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt1.getId()));
+    assertThat(rtl.getResources().get(2).getClient().getClientId(), equalTo(TEST_CLIENT2_ID));
+  }
+
+  @Test
+  public void getTokensSortedByUsername() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2RefreshTokenEntity rt1 =
+        buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByUser().sortDirectionAsc().build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(rtl.getResources().get(1).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(rtl.getResources().get(2).getUser().getUserName(), equalTo(TESTUSER2_USERNAME));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt1.getId()));
+
+    params =
+        MultiValueMapBuilder.builder().sortByUser().sortDirectionDesc().build();
+
+    rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getUser().getUserName(), equalTo(TESTUSER2_USERNAME));
+    assertThat(rtl.getResources().get(1).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(rtl.getResources().get(2).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByExpirationAndIdWithNullExpiration() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2RefreshTokenEntity rt1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    OAuth2RefreshTokenEntity rt2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    OAuth2RefreshTokenEntity rt3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByExpiration().sortDirectionDesc().build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getId(), equalTo(rt3.getId()));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt2.getId()));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+
+    params = MultiValueMapBuilder.builder().sortByExpiration().sortDirectionAsc().build();
+
+    rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getId(), equalTo(rt3.getId()));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt2.getId()));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByDefault() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2RefreshTokenEntity rt1 = buildAccessTokenOfflineAccessCustomExpiration(client1,
+        TESTUSER_USERNAME, SCOPES, getDateOffsetBy(1)).getRefreshToken();
+    OAuth2RefreshTokenEntity rt2 = buildAccessTokenOfflineAccessCustomExpiration(client1,
+        TESTUSER_USERNAME, SCOPES, getDateOffsetBy(2)).getRefreshToken();
+    OAuth2RefreshTokenEntity rt3 = buildAccessTokenOfflineAccessCustomExpiration(client1,
+        TESTUSER_USERNAME, SCOPES, getDateOffsetBy(3)).getRefreshToken();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList();
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getId(), equalTo(rt3.getId()));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt2.getId()));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByDefaultWithMalformedDirection() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2RefreshTokenEntity rt1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    OAuth2RefreshTokenEntity rt2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+    OAuth2RefreshTokenEntity rt3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES).getRefreshToken();
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortDirection("fake").build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(3L));
+    assertThat(rtl.getResources().get(0).getId(), equalTo(rt3.getId()));
+    assertThat(rtl.getResources().get(1).getId(), equalTo(rt2.getId()));
+    assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+  }
 }

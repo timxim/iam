@@ -37,49 +37,26 @@ public class TokensControllerSupport {
   public static final String APPLICATION_JSON_CONTENT_TYPE = "application/json";
   public static final int TOKENS_MAX_PAGE_SIZE = 20;
 
-  protected TokensPageRequest buildTokensPageRequest(Integer count, Integer startIndex,
+  protected TokensPageRequest buildTokensPageRequest(Integer startIndex, Integer count,
       String clientId, String userId, String sortBy, String sortDirection) {
 
     return buildPageRequest(count, startIndex, TOKENS_MAX_PAGE_SIZE, clientId, userId, sortBy,
         sortDirection);
   }
 
-  private TokensPageRequest buildPageRequest(Integer count, Integer startIndex, int maxPageSize,
+  private TokensPageRequest buildPageRequest(Integer startIndex, Integer count, int maxPageSize,
       String clientId, String userId, String sortBy, String sortDirection) {
 
-    int validCount = 0;
-    int validStartIndex = 1;
-
-    if (count == null) {
-      validCount = maxPageSize;
-    } else {
-      validCount = count;
-      if (count < 0) {
-        validCount = 0;
-      } else if (count > maxPageSize) {
-        validCount = maxPageSize;
-      }
-    }
-
-    // tokens pages index is 1-based
-    if (startIndex == null) {
-      validStartIndex = 1;
-
-    } else {
-
-      validStartIndex = startIndex;
-      if (startIndex < 1) {
-        validStartIndex = 1;
-      }
-    }
-
-    return new DefaultTokensPageRequest.Builder().count(validCount)
-        .startIndex(validStartIndex)
+    // @formatter:off
+    return new DefaultTokensPageRequest.Builder()
+        .startIndex(startIndex)
+        .count(count > maxPageSize ? maxPageSize : count)
         .sortBy(sortBy)
         .sortDirection(sortDirection)
         .clientId(clientId)
         .userId(userId)
         .build();
+    // @formatter:on
   }
 
   protected Set<String> parseAttributes(final String attributesParameter) {

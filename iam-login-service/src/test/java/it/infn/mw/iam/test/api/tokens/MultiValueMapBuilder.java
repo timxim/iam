@@ -58,6 +58,43 @@ public class MultiValueMapBuilder {
     return this;
   }
 
+  MultiValueMapBuilder sortByClient() {
+
+    return sortBy("client");
+  }
+
+  MultiValueMapBuilder sortByUser() {
+
+    return sortBy("user");
+  }
+
+  MultiValueMapBuilder sortByExpiration() {
+
+    return sortBy("expiration");
+  }
+
+  MultiValueMapBuilder sortBy(String sortBy) {
+
+    params.put("sortBy", Lists.newArrayList(sortBy));
+    return this;
+  }
+
+  MultiValueMapBuilder sortDirectionAsc() {
+
+    return sortDirection("asc");
+  }
+
+  MultiValueMapBuilder sortDirectionDesc() {
+
+    return sortDirection("desc");
+  }
+
+  MultiValueMapBuilder sortDirection(String direction) {
+
+    params.put("sortDirection", Lists.newArrayList(direction));
+    return this;
+  }
+
   MultiValueMap<String, String> build() {
 
     return params;

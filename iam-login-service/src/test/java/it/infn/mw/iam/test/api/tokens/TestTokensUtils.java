@@ -128,10 +128,7 @@ public class TestTokensUtils {
 
     OAuth2AccessTokenEntity token =
         tokenService.createAccessToken(oauth2Authentication(client, username, scopes));
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(new Date());
-    cal.add(Calendar.DATE, -10);
-    token.setExpiration(cal.getTime());
+    token.setExpiration(getDateOffsetBy(-10));
     accessTokenRepository.save(token);
     return token;
   }
@@ -139,15 +136,26 @@ public class TestTokensUtils {
   public OAuth2AccessTokenEntity buildAccessTokenWithExpiredRefreshToken(ClientDetailsEntity client,
       String username, String[] scopes) {
 
+    return buildAccessTokenOfflineAccessCustomExpiration(client, username, scopes, getDateOffsetBy(-10));
+  }
+
+  public OAuth2AccessTokenEntity buildAccessTokenOfflineAccessCustomExpiration(ClientDetailsEntity client,
+      String username, String[] scopes, Date refreshTokenExpiration) {
+
     OAuth2AccessTokenEntity token =
         tokenService.createAccessToken(oauth2Authentication(client, username, scopes));
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(new Date());
-    cal.add(Calendar.DATE, -10);
     OAuth2RefreshTokenEntity refreshToken = token.getRefreshToken();
-    refreshToken.setExpiration(cal.getTime());
+    refreshToken.setExpiration(refreshTokenExpiration);
     refreshTokenRepository.save(refreshToken);
     return token;
+  }
+
+  public Date getDateOffsetBy(int offsetDays) {
+
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(new Date());
+    cal.add(Calendar.DATE, offsetDays);
+    return cal.getTime();
   }
 
   public OAuth2AccessTokenEntity buildAccessToken(ClientDetailsEntity client, String[] scopes) {

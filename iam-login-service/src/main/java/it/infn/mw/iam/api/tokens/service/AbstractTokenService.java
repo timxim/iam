@@ -30,14 +30,37 @@ public abstract class AbstractTokenService<T> implements TokenService<T> {
 
   protected OffsetPageable getOffsetPageable(TokensPageRequest pageRequest) {
 
-    return new OffsetPageable(pageRequest.getStartIndex() - 1, pageRequest.getCount(), getSort());
+    return new OffsetPageable(pageRequest.getStartIndex() - 1, pageRequest.getCount(), getSort(pageRequest));
   }
 
-  private Sort getSort() {
+  private Sort getSort(TokensPageRequest pageRequest) {
 
+    Sort.Direction direction;
+    try {
+      direction = Sort.Direction.fromString(pageRequest.getSortDirection());
+    } catch (IllegalArgumentException e) {
+      log.error(e.getMessage(), e);
+      direction = Sort.Direction.DESC;
+    }
+
+    Sort sort;
     Sort.Order expirationDesc = new Order(Sort.Direction.DESC, "expiration");
     Sort.Order idDesc = new Order(Sort.Direction.DESC, "id");
-    return new Sort(expirationDesc, idDesc);
+
+    String sortBy = pageRequest.getSortBy().toLowerCase();
+    switch (sortBy) {
+      case "client":
+        sort = new Sort(new Order(direction, "authenticationHolder.clientId"), expirationDesc, idDesc);
+        break;
+      case "user":
+        sort = new Sort(new Order(direction, "authenticationHolder.userAuth.name"), expirationDesc, idDesc);
+        break;
+      default:
+        sort = new Sort(new Order(direction, "expiration"), idDesc);
+    }
+
+    log.info("Sort: {}", sort);
+    return sort;
   }
 
   protected boolean isCountRequest(TokensPageRequest pageRequest) {

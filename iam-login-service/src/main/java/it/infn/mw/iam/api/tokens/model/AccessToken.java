@@ -33,13 +33,11 @@ public class AccessToken {
   private Date expiration;
   private ClientRef client;
   private UserRef user;
-  private IdTokenRef idToken;
 
   @JsonCreator
   public AccessToken(@JsonProperty("id") Long id, @JsonProperty("value") String value,
       @JsonProperty("scopes") Set<String> scopes, @JsonProperty("expiration") Date expiration,
-      @JsonProperty("client") ClientRef client, @JsonProperty("user") UserRef user,
-      @JsonProperty("idToken") IdTokenRef idToken) {
+      @JsonProperty("client") ClientRef client, @JsonProperty("user") UserRef user) {
 
     this.id = id;
     this.value = value;
@@ -47,7 +45,6 @@ public class AccessToken {
     this.expiration = expiration;
     this.client = client;
     this.user = user;
-    this.idToken = idToken;
   }
 
   public AccessToken(Builder builder) {
@@ -58,7 +55,6 @@ public class AccessToken {
     this.expiration = builder.expiration;
     this.client = builder.client;
     this.user = builder.user;
-    this.idToken = builder.idToken;
   }
 
   @JsonProperty("id")
@@ -97,16 +93,10 @@ public class AccessToken {
     return user;
   }
 
-  @JsonProperty("idToken")
-  public IdTokenRef getIdToken() {
-
-    return idToken;
-  }
-
   @Override
   public String toString() {
     return "AccessToken [id=" + id + ", value=" + value + ", scopes=" + scopes + ", expiration="
-        + expiration + ", client=" + client + ", user=" + user + ", idToken=" + idToken + "]";
+        + expiration + ", client=" + client + ", user=" + user + "]";
   }
 
   public static Builder builder() {
@@ -122,7 +112,6 @@ public class AccessToken {
     private Date expiration;
     private ClientRef client;
     private UserRef user;
-    private IdTokenRef idToken;
 
     public Builder id(Long id) {
       this.id = id;
@@ -151,11 +140,6 @@ public class AccessToken {
 
     public Builder user(UserRef user) {
       this.user = user;
-      return this;
-    }
-
-    public Builder idToken(IdTokenRef idToken) {
-      this.idToken = idToken;
       return this;
     }
 

@@ -484,4 +484,130 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     assertThat(atl.getStartIndex(), equalTo(1));
     assertThat(atl.getItemsPerPage(), equalTo(0));
   }
+
+  @Test
+  public void getTokensSortedByClientName() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByClient().sortDirectionAsc().build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getClient().getClientId(), equalTo(TEST_CLIENT2_ID));
+    assertThat(atl.getResources().get(1).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(atl.getResources().get(2).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
+
+    params =
+        MultiValueMapBuilder.builder().sortByClient().sortDirectionDesc().build();
+
+    atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(atl.getResources().get(1).getClient().getClientId(), equalTo(TEST_CLIENT_ID));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at1.getId()));
+    assertThat(atl.getResources().get(2).getClient().getClientId(), equalTo(TEST_CLIENT2_ID));
+  }
+
+  @Test
+  public void getTokensSortedByUsername() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByUser().sortDirectionAsc().build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(atl.getResources().get(1).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(atl.getResources().get(2).getUser().getUserName(), equalTo(TESTUSER2_USERNAME));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at1.getId()));
+
+    params =
+        MultiValueMapBuilder.builder().sortByUser().sortDirectionDesc().build();
+
+    atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getUser().getUserName(), equalTo(TESTUSER2_USERNAME));
+    assertThat(atl.getResources().get(1).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(atl.getResources().get(2).getUser().getUserName(), equalTo(TESTUSER_USERNAME));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByExpiration() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortByExpiration().sortDirectionDesc().build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getId(), equalTo(at3.getId()));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at2.getId()));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
+
+    params = MultiValueMapBuilder.builder().sortByExpiration().sortDirectionAsc().build();
+
+    atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getId(), equalTo(at1.getId()));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at2.getId()));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at3.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByDefault() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList();
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getId(), equalTo(at3.getId()));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at2.getId()));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
+  }
+
+  @Test
+  public void getTokensSortedByDefaultWithMalformedDirection() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().sortDirection("fake").build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(3L));
+    assertThat(atl.getResources().get(0).getId(), equalTo(at3.getId()));
+    assertThat(atl.getResources().get(1).getId(), equalTo(at2.getId()));
+    assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
+  }
 }

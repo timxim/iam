@@ -15,6 +15,8 @@
  */
 package it.infn.mw.iam.api.tokens.service.paging;
 
+import java.util.Optional;
+
 public interface TokensPageRequest {
 
   public int getCount();
@@ -25,8 +27,8 @@ public interface TokensPageRequest {
 
   public String getSortDirection();
 
-  public String getUserId();
+  public Optional<String> getUserId();
 
-  public String getClientId();
+  public Optional<String> getClientId();
 
 }

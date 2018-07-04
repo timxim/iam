@@ -16,22 +16,23 @@
 package it.infn.mw.iam.api.tokens;
 
 import static it.infn.mw.iam.api.tokens.Constants.ACCESS_TOKENS_ENDPOINT;
-
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
 import it.infn.mw.iam.api.common.ErrorDTO;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.tokens.exception.TokenNotFoundException;
@@ -49,30 +50,32 @@ public class AccessTokensController extends TokensControllerSupport {
   @Autowired
   private TokenService<AccessToken> tokenService;
 
-  @RequestMapping(method = RequestMethod.GET, produces = APPLICATION_JSON_CONTENT_TYPE)
-  public MappingJacksonValue listAccessTokens(@RequestParam(required = false) Integer count,
-      @RequestParam(required = false) Integer startIndex,
+  @RequestMapping(method = GET, produces = APPLICATION_JSON_CONTENT_TYPE)
+  public MappingJacksonValue listAccessTokens(
+      @RequestParam(required = false, defaultValue = "1") Integer startIndex,
+      @RequestParam(required = false, defaultValue = "" + TOKENS_MAX_PAGE_SIZE) Integer count,
       @RequestParam(required = false) String userId,
       @RequestParam(required = false) String clientId,
+      @RequestParam(required = false, defaultValue = "expiration") String sortBy,
+      @RequestParam(required = false, defaultValue = "desc") String sortDirection,
       @RequestParam(required = false) final String attributes) {
 
     TokensPageRequest pr =
-        buildTokensPageRequest(count, startIndex, clientId, userId, "expiration", "desc");
-    ListResponseDTO<AccessToken> results = getFilteredList(pr, userId, clientId);
+        buildTokensPageRequest(count, startIndex, clientId, userId, sortBy, sortDirection);
+    ListResponseDTO<AccessToken> results = getFilteredList(pr);
     return filterAttributes(results, attributes);
   }
   
-  @RequestMapping(method = RequestMethod.DELETE)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @RequestMapping(method = DELETE)
+  @ResponseStatus(NO_CONTENT)
   public void deleteAllTokens() {
     tokenService.deleteAllTokens();
   }
 
-  private ListResponseDTO<AccessToken> getFilteredList(TokensPageRequest pageRequest,
-      String userId, String clientId) {
+  private ListResponseDTO<AccessToken> getFilteredList(TokensPageRequest pageRequest) {
 
-    Optional<String> user = Optional.ofNullable(userId);
-    Optional<String> client = Optional.ofNullable(clientId);
+    Optional<String> user = pageRequest.getUserId();
+    Optional<String> client = pageRequest.getClientId();
 
     if (user.isPresent() && client.isPresent()) {
       return tokenService.getTokensForClientAndUser(user.get(), client.get(), pageRequest);
@@ -86,29 +89,36 @@ public class AccessTokensController extends TokensControllerSupport {
     return tokenService.getAllTokens(pageRequest);
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
+  @RequestMapping(method = GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
   public AccessToken getAccessToken(@PathVariable("id") Long id) {
 
     return tokenService.getTokenById(id);
   }
 
-  @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @RequestMapping(method = DELETE, value = "/{id}")
+  @ResponseStatus(NO_CONTENT)
   public void revokeAccessToken(@PathVariable("id") Long id) {
 
     tokenService.revokeTokenById(id);
   }
 
-  @ResponseStatus(value = HttpStatus.NOT_FOUND)
+  @ResponseStatus(value = NOT_FOUND)
   @ExceptionHandler(TokenNotFoundException.class)
   public ErrorDTO tokenNotFoundError(Exception ex) {
 
     return ErrorDTO.fromString(ex.getMessage());
   }
 
-  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+  @ResponseStatus(value = INTERNAL_SERVER_ERROR)
   @ExceptionHandler(IamAccountException.class)
   public ErrorDTO accountNotFoundError(Exception ex) {
+
+    return ErrorDTO.fromString(ex.getMessage());
+  }
+
+  @ResponseStatus(value = INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(InvalidClientException.class)
+  public ErrorDTO clientNotFoundError(Exception ex) {
 
     return ErrorDTO.fromString(ex.getMessage());
   }
