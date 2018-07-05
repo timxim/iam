@@ -556,9 +556,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
   public void getTokensSortedByExpiration() throws Exception {
 
     ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
-    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
-    OAuth2AccessTokenEntity at2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
-    OAuth2AccessTokenEntity at3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    OAuth2AccessTokenEntity at1 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES, getDateOffsetBy(1));
+    OAuth2AccessTokenEntity at2 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES, getDateOffsetBy(2));
+    OAuth2AccessTokenEntity at3 = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES, getDateOffsetBy(3));
 
     MultiValueMap<String, String> params =
         MultiValueMapBuilder.builder().sortByExpiration().sortDirectionDesc().build();

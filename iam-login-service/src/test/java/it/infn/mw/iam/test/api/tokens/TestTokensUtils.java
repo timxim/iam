@@ -118,8 +118,14 @@ public class TestTokensUtils {
 
   public OAuth2AccessTokenEntity buildAccessToken(ClientDetailsEntity client, String username,
       String[] scopes) {
+    return buildAccessToken(client, username, scopes, new Date());
+  }
+
+  public OAuth2AccessTokenEntity buildAccessToken(ClientDetailsEntity client, String username,
+      String[] scopes, Date expiration) {
     OAuth2AccessTokenEntity token =
         tokenService.createAccessToken(oauth2Authentication(client, username, scopes));
+    token.setExpiration(expiration);
     return token;
   }
 
