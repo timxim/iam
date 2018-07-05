@@ -190,7 +190,7 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     assertThat(remoteAt.getClient().getClientId(), equalTo(target.getClient().getClientId()));
     assertThat(remoteAt.getClient().getRef(), equalTo(target.getClient().getClientUri()));
 
-    assertThat(remoteAt.getExpiration(), equalTo(target.getExpiration()));
+    assertThat(remoteAt.getExpiration(), new DateEqualModulo1Second(target.getExpiration()));
 
     assertThat(remoteAt.getUser().getId(), equalTo(user.getUuid()));
     assertThat(remoteAt.getUser().getUserName(), equalTo(user.getUsername()));
