@@ -118,7 +118,7 @@ public class TestTokensUtils {
 
   public OAuth2AccessTokenEntity buildAccessToken(ClientDetailsEntity client, String username,
       String[] scopes) {
-    return buildAccessToken(client, username, scopes, new Date());
+    return tokenService.createAccessToken(oauth2Authentication(client, username, scopes));
   }
 
   public OAuth2AccessTokenEntity buildAccessToken(ClientDetailsEntity client, String username,

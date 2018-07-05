@@ -170,10 +170,8 @@ public class AccessTokenGetListTests extends TestTokensUtils {
 
     IamAccount user = loadTestUser(TESTUSER_USERNAME);
 
-    List<OAuth2AccessTokenEntity> accessTokens = Lists.newArrayList();
     OAuth2AccessTokenEntity target = buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
-    accessTokens.add(target);
-    accessTokens.add(buildAccessToken(client2, TESTUSER_USERNAME, SCOPES));
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
 
     MultiValueMap<String, String> params =
         MultiValueMapBuilder.builder().clientId(client1.getClientId()).build();
@@ -185,15 +183,14 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     assertThat(atl.getItemsPerPage(), equalTo(1));
     assertThat(atl.getResources().size(), equalTo(1));
 
-    List<AccessToken> acl = atl.getResources();
-    AccessToken remoteAt = acl.get(0);
+    AccessToken remoteAt = atl.getResources().get(0);
 
     assertThat(remoteAt.getId(), equalTo(target.getId()));
     assertThat(remoteAt.getClient().getId(), equalTo(target.getClient().getId()));
     assertThat(remoteAt.getClient().getClientId(), equalTo(target.getClient().getClientId()));
     assertThat(remoteAt.getClient().getRef(), equalTo(target.getClient().getClientUri()));
 
-    assertThat(remoteAt.getExpiration(), new DateEqualModulo1Second(target.getExpiration()));
+    assertThat(remoteAt.getExpiration(), equalTo(target.getExpiration()));
 
     assertThat(remoteAt.getUser().getId(), equalTo(user.getUuid()));
     assertThat(remoteAt.getUser().getUserName(), equalTo(user.getUsername()));
