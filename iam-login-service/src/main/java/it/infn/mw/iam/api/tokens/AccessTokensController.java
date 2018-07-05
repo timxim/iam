@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import java.util.Optional;
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,10 +45,11 @@ import it.infn.mw.iam.core.user.exception.IamAccountException;
 @Transactional
 @PreAuthorize("hasRole('ADMIN')")
 @RequestMapping(ACCESS_TOKENS_ENDPOINT)
-public class AccessTokensController extends TokensControllerSupport {
+public class AccessTokensController
+    extends AbstractTokensController<AccessToken, OAuth2AccessTokenEntity> {
 
   @Autowired
-  private TokenService<AccessToken> tokenService;
+  private TokenService<OAuth2AccessTokenEntity> tokenService;
 
   @RequestMapping(method = GET, produces = APPLICATION_JSON_CONTENT_TYPE)
   public MappingJacksonValue listAccessTokens(
@@ -60,39 +61,24 @@ public class AccessTokensController extends TokensControllerSupport {
       @RequestParam(required = false, defaultValue = "desc") String sortDirection,
       @RequestParam(required = false) final String attributes) {
 
-    TokensPageRequest pr =
-        buildTokensPageRequest(count, startIndex, clientId, userId, sortBy, sortDirection);
-    ListResponseDTO<AccessToken> results = getFilteredList(pr);
+    TokensPageRequest pageRequest =
+        buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
+    ListResponseDTO<AccessToken> results = getResponse(pageRequest);
     return filterAttributes(results, attributes);
   }
-  
+
   @RequestMapping(method = DELETE)
   @ResponseStatus(NO_CONTENT)
   public void deleteAllTokens() {
+
     tokenService.deleteAllTokens();
-  }
-
-  private ListResponseDTO<AccessToken> getFilteredList(TokensPageRequest pageRequest) {
-
-    Optional<String> user = pageRequest.getUserId();
-    Optional<String> client = pageRequest.getClientId();
-
-    if (user.isPresent() && client.isPresent()) {
-      return tokenService.getTokensForClientAndUser(user.get(), client.get(), pageRequest);
-    }
-    if (user.isPresent()) {
-      return tokenService.getTokensForUser(user.get(), pageRequest);
-    }
-    if (client.isPresent()) {
-      return tokenService.getTokensForClient(client.get(), pageRequest);
-    }
-    return tokenService.getAllTokens(pageRequest);
   }
 
   @RequestMapping(method = GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
   public AccessToken getAccessToken(@PathVariable("id") Long id) {
 
-    return tokenService.getTokenById(id);
+    return buildTokenResponse(
+        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id)));
   }
 
   @RequestMapping(method = DELETE, value = "/{id}")
@@ -110,15 +96,8 @@ public class AccessTokensController extends TokensControllerSupport {
   }
 
   @ResponseStatus(value = INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(IamAccountException.class)
+  @ExceptionHandler({IamAccountException.class, InvalidClientException.class})
   public ErrorDTO accountNotFoundError(Exception ex) {
-
-    return ErrorDTO.fromString(ex.getMessage());
-  }
-
-  @ResponseStatus(value = INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(InvalidClientException.class)
-  public ErrorDTO clientNotFoundError(Exception ex) {
 
     return ErrorDTO.fromString(ex.getMessage());
   }

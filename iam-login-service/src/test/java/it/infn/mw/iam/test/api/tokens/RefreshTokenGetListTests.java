@@ -15,7 +15,7 @@
  */
 package it.infn.mw.iam.test.api.tokens;
 
-import static it.infn.mw.iam.api.tokens.TokensControllerSupport.TOKENS_MAX_PAGE_SIZE;
+import static it.infn.mw.iam.api.tokens.AbstractTokensController.TOKENS_MAX_PAGE_SIZE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import java.util.Date;
@@ -89,22 +89,22 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     assertThat(tokenRepository.count(), equalTo(0L));
 
     /* get list */
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList();
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList();
 
-    assertThat(atl.getTotalResults(), equalTo(0L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
-    assertThat(atl.getResources().size(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(0L));
+    assertThat(rtl.getStartIndex(), equalTo(1));
+    assertThat(rtl.getItemsPerPage(), equalTo(0));
+    assertThat(rtl.getResources().size(), equalTo(0));
 
     MultiValueMap<String, String> params = MultiValueMapBuilder.builder().count(0).build();
 
     /* get count */
-    atl = getRefreshTokenList(params);
+    rtl = getRefreshTokenList(params);
 
-    assertThat(atl.getTotalResults(), equalTo(0L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
-    assertThat(atl.getResources().size(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(0L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
   @Test
@@ -116,13 +116,13 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
 
     MultiValueMap<String, String> params = MultiValueMapBuilder.builder().count(0).build();
 
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
 
     assertThat(tokenRepository.count(), equalTo(1L));
-    assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
-    assertThat(atl.getResources().size(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
   @Test
@@ -357,11 +357,12 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
 
     MultiValueMap<String, String> params = MultiValueMapBuilder.builder().count(0).build();
 
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
 
-    assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
   @Test
@@ -387,11 +388,12 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     MultiValueMap<String, String> params =
         MultiValueMapBuilder.builder().count(0).userId(TESTUSER_USERNAME).build();
 
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
 
-    assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
   @Test
@@ -418,11 +420,12 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     MultiValueMap<String, String> params =
         MultiValueMapBuilder.builder().count(0).clientId(TEST_CLIENT_ID).build();
 
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
 
-    assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
 
@@ -455,11 +458,12 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     MultiValueMap<String, String> params = MultiValueMapBuilder.builder().count(0)
         .userId(TESTUSER_USERNAME).clientId(TEST_CLIENT_ID).build();
 
-    ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
 
-    assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 
 
@@ -592,5 +596,66 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     assertThat(rtl.getResources().get(0).getId(), equalTo(rt3.getId()));
     assertThat(rtl.getResources().get(1).getId(), equalTo(rt2.getId()));
     assertThat(rtl.getResources().get(2).getId(), equalTo(rt1.getId()));
+  }
+
+  @Test
+  public void getRefreshTokenCountWithClientIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().clientId(client1.getClientId()).count(0).build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
+  }
+
+  @Test
+  public void getRefreshTokenCountWithUserIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().userId(TESTUSER_USERNAME).count(0).build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
+  }
+
+  @Test
+  public void getRefreshTokenCountWithUserAndClientIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params = MultiValueMapBuilder.builder().userId(TESTUSER_USERNAME)
+        .clientId(TEST_CLIENT2_ID).count(0).build();
+
+    ListResponseDTO<RefreshToken> rtl = getRefreshTokenList(params);
+
+    assertThat(rtl.getTotalResults(), equalTo(1L));
+    assertThat(rtl.getStartIndex(), equalTo(null));
+    assertThat(rtl.getItemsPerPage(), equalTo(null));
+    assertThat(rtl.getResources(), equalTo(null));
   }
 }

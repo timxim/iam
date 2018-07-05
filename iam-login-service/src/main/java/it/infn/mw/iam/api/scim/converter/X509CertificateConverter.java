@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import eu.emi.security.authn.x509.impl.X500NameUtils;
+import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.api.scim.model.ScimX509Certificate;
 import it.infn.mw.iam.authn.x509.X509CertificateChainParser;
 import it.infn.mw.iam.authn.x509.X509CertificateChainParsingResult;

@@ -18,7 +18,7 @@ package it.infn.mw.iam.api.scim.converter;
 import org.mitre.openid.connect.model.Address;
 import org.mitre.openid.connect.model.DefaultAddress;
 import org.springframework.stereotype.Service;
-
+import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.api.scim.model.ScimAddress;
 
 @Service

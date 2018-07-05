@@ -18,8 +18,7 @@ package it.infn.mw.iam.api.aup.model;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import it.infn.mw.iam.api.scim.converter.Converter;
+import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.persistence.model.IamAupSignature;
 
 

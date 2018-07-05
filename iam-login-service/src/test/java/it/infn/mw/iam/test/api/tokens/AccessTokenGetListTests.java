@@ -15,7 +15,7 @@
  */
 package it.infn.mw.iam.test.api.tokens;
 
-import static it.infn.mw.iam.api.tokens.TokensControllerSupport.TOKENS_MAX_PAGE_SIZE;
+import static it.infn.mw.iam.api.tokens.AbstractTokensController.TOKENS_MAX_PAGE_SIZE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import java.util.Date;
@@ -107,9 +107,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     atl = getAccessTokenList(params);
 
     assertThat(atl.getTotalResults(), equalTo(0L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
-    assertThat(atl.getResources().size(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
   @Test
@@ -125,9 +125,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
 
     assertThat(tokenRepository.count(), equalTo(1L));
     assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
-    assertThat(atl.getResources().size(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
   @Test
@@ -383,8 +383,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
 
     assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
   @Test
@@ -413,8 +414,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
 
     assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
   @Test
@@ -444,8 +446,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
 
     assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
 
@@ -481,8 +484,9 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
 
     assertThat(atl.getTotalResults(), equalTo(1L));
-    assertThat(atl.getStartIndex(), equalTo(1));
-    assertThat(atl.getItemsPerPage(), equalTo(0));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
   }
 
   @Test
@@ -610,4 +614,66 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     assertThat(atl.getResources().get(1).getId(), equalTo(at2.getId()));
     assertThat(atl.getResources().get(2).getId(), equalTo(at1.getId()));
   }
+
+  @Test
+  public void getAccessTokenCountWithClientIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().clientId(client1.getClientId()).count(0).build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(1L));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
+  }
+
+  @Test
+  public void getAccessTokenCountWithUserIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params =
+        MultiValueMapBuilder.builder().userId(TESTUSER_USERNAME).count(0).build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(1L));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
+  }
+
+  @Test
+  public void getAccessTokenCountWithUserAndClientIdFilter() throws Exception {
+
+    ClientDetailsEntity client1 = loadTestClient(TEST_CLIENT_ID);
+    ClientDetailsEntity client2 = loadTestClient(TEST_CLIENT2_ID);
+
+    buildAccessToken(client1, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client1, TESTUSER2_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER_USERNAME, SCOPES);
+    buildAccessToken(client2, TESTUSER2_USERNAME, SCOPES);
+
+    MultiValueMap<String, String> params = MultiValueMapBuilder.builder().userId(TESTUSER_USERNAME)
+        .clientId(TEST_CLIENT2_ID).count(0).build();
+
+    ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
+
+    assertThat(atl.getTotalResults(), equalTo(1L));
+    assertThat(atl.getStartIndex(), equalTo(null));
+    assertThat(atl.getItemsPerPage(), equalTo(null));
+    assertThat(atl.getResources(), equalTo(null));
+  }
+
 }

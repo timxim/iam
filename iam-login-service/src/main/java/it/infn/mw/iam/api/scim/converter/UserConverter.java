@@ -17,7 +17,7 @@ package it.infn.mw.iam.api.scim.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.api.scim.exception.ScimException;
 import it.infn.mw.iam.api.scim.model.ScimAddress;
 import it.infn.mw.iam.api.scim.model.ScimGroupRef;

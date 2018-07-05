@@ -1,39 +1,44 @@
 /**
  * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package it.infn.mw.iam.api.tokens.service;
 
-import it.infn.mw.iam.api.common.ListResponseDTO;
-import it.infn.mw.iam.api.tokens.service.paging.TokensPageRequest;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import it.infn.mw.iam.api.common.OffsetPageable;
 
 public interface TokenService<T> {
 
-  ListResponseDTO<T> getAllTokens(final TokensPageRequest pageRequest);
+  Long countAllTokens();
 
-  ListResponseDTO<T> getTokensForUser(final String userId, final TokensPageRequest pageRequest);
+  Page<T> getAllTokens(OffsetPageable op);
 
-  ListResponseDTO<T> getTokensForClient(final String clientId,
-      final TokensPageRequest pageRequest);
+  Long countTokensForUser(String userId);
 
-  ListResponseDTO<T> getTokensForClientAndUser(final String userId, final String clientId,
-      final TokensPageRequest pageRequest);
+  Page<T> getTokensForUser(String userId, OffsetPageable op);
 
-  T getTokenById(Long id);
+  Long countTokensForClient(String clientId);
+
+  Page<T> getTokensForClient(String clientId, OffsetPageable op);
+
+  Long countTokensForUserAndClient(String userId, String clientId);
+
+  Page<T> getTokensForClientAndUser(String userId, String clientId, OffsetPageable op);
+
+  Optional<T> getTokenById(Long id);
 
   void revokeTokenById(Long id);
-  
+
   void deleteAllTokens();
 
 }

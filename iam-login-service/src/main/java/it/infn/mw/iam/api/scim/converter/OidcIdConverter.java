@@ -16,7 +16,7 @@
 package it.infn.mw.iam.api.scim.converter;
 
 import org.springframework.stereotype.Service;
-
+import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.api.scim.model.ScimOidcId;
 import it.infn.mw.iam.persistence.model.IamOidcId;
 
