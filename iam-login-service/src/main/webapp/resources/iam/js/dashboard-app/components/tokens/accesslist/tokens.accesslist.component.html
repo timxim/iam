@@ -70,7 +70,13 @@
                         <th>User</th>
                         <th>Value</th>
                         <th>Scopes</th>
-                        <th>Expires</th>
+                        <th>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('expiration', 'asc')" ng-if="$ctrl.sortDirection == 'desc'">Expires</span>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('expiration', 'desc')" ng-if="$ctrl.sortDirection == 'asc'">Expires</span>
+                            &nbsp;
+                            <i class="fa fa-angle-down" ng-if="$ctrl.sortDirection == 'desc' && $ctrl.sortByValue == 'expiration'"></i>
+                            <i class="fa fa-angle-up" ng-if="$ctrl.sortDirection == 'asc' && $ctrl.sortByValue == 'expiration'"></i>
+                        </th>
                         <th></th>
                     </tr>
                 </thead>

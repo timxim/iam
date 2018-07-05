@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(function() {
+(function () {
   'use strict';
 
   function RevokeAccessTokenController($rootScope, $uibModalInstance, TokensService, token) {
@@ -43,7 +43,7 @@
   }
 
   function AccessTokensListController($q, $scope, $rootScope, $uibModal, ModalService,
-      TokensService, scimFactory, clipboardService, Utils, toaster) {
+    TokensService, scimFactory, clipboardService, Utils, toaster) {
 
     var self = this;
 
@@ -52,22 +52,24 @@
     self.currentOffset = 1;
     self.itemsPerPage = 10;
     self.totalResults = self.total;
+    self.sortByValue = "expiration";
+    self.sortDirection = "desc";
 
-    self.$onInit = function() {
+    self.$onInit = function () {
       console.debug("init AccessTokensListController", self.tokens, self.currentPage, self.currentOffset, self.totalResults);
     };
 
-    $scope.$on('refreshAccessTokensList', function(e) {
+    $scope.$on('refreshAccessTokensList', function (e) {
       console.debug("received refreshAccessTokensList event");
       self.searchTokens(1);
     });
 
-    self.copyToClipboard = function(toCopy) {
+    self.copyToClipboard = function (toCopy) {
       clipboardService.copyToClipboard(toCopy);
       toaster.pop({ type: 'success', body: 'Token copied to clipboard!' });
     };
 
-    self.updateAccessTokenCount = function(responseValue) {
+    self.updateAccessTokenCount = function (responseValue) {
       if (self.clientSelected || self.userSelected) {
         if (responseValue > $rootScope.accessTokensCount) {
           $rootScope.accessTokensCount = responseValue;
@@ -77,7 +79,7 @@
       }
     };
 
-    self.searchTokens = function(page) {
+    self.searchTokens = function (page) {
 
       console.debug("page = ", page);
       $rootScope.pageLoadingProgress = 0;
@@ -85,11 +87,11 @@
 
       self.tokens = [];
       self.currentPage = page;
-      self.currentOffset = ( page - 1 ) * self.itemsPerPage + 1;
+      self.currentOffset = (page - 1) * self.itemsPerPage + 1;
 
-      var handleResponse = function(response){
+      var handleResponse = function (response) {
         self.totalResults = response.data.totalResults;
-        angular.forEach(response.data.Resources, function(token){
+        angular.forEach(response.data.Resources, function (token) {
           self.tokens.push(token);
         });
         $rootScope.pageLoadingProgress = 100;
@@ -98,35 +100,41 @@
         self.loadingModal.dismiss("Cancel");
       };
 
-      var handleError = function(error) {
+      var handleError = function (error) {
         self.loadingModal.dismiss("Error");
-        toaster.pop({type: 'error', body: error});
+        toaster.pop({ type: 'error', body: error });
       };
 
       self.loadingModal = $uibModal.open({
         animation: false,
-        templateUrl : '/resources/iam/template/dashboard/loading-modal.html'
+        templateUrl: '/resources/iam/template/dashboard/loading-modal.html'
       });
 
-      self.loadingModal.opened.then(function(){
+      self.loadingModal.opened.then(function () {
         self.getAccessTokenList(self.currentOffset, self.itemsPerPage).then(handleResponse, handleError);
       });
     }
 
-    self.getAccessTokenList = function(startIndex, count) {
+    self.getAccessTokenList = function (startIndex, count) {
       if (self.clientSelected && self.userSelected) {
-        return TokensService.getAccessTokensFilteredByUserAndClient(startIndex, count, self.userSelected.userName, self.clientSelected.clientId);
-      } 
-      if (self.clientSelected) {
-        return TokensService.getAccessTokensFilteredByClient(startIndex, count, self.clientSelected.clientId);
-      } 
-      if (self.userSelected) {
-        return TokensService.getAccessTokensFilteredByUser(startIndex, count, self.userSelected.userName);
+        return TokensService.getAccessTokensFilteredByUserAndClient(startIndex, count, self.userSelected.userName, self.clientSelected.clientId, self.sortByValue, self.sortDirection);
       }
-      return TokensService.getAccessTokens(startIndex, count);
+      if (self.clientSelected) {
+        return TokensService.getAccessTokensFilteredByClient(startIndex, count, self.clientSelected.clientId, self.sortByValue, self.sortDirection);
+      }
+      if (self.userSelected) {
+        return TokensService.getAccessTokensFilteredByUser(startIndex, count, self.userSelected.userName, self.sortByValue, self.sortDirection);
+      }
+      return TokensService.getAccessTokens(startIndex, count, self.sortByValue, self.sortDirection);
     }
 
-    self.handleRevokeSuccess = function(token) {
+    self.sortBy = function (sortByValue, sortDirection) {
+      self.sortByValue = sortByValue;
+      self.sortDirection = sortDirection;
+      self.searchTokens(self.currentPage);
+    }
+
+    self.handleRevokeSuccess = function (token) {
       self.enabled = true;
       toaster.pop({
         type: 'success',
@@ -134,9 +142,9 @@
       });
       self.totalResults--;
       if (self.currentOffset > self.totalResults) {
-          if (self.currentPage > 1) {
-              self.currentPage--;
-          }
+        if (self.currentPage > 1) {
+          self.currentPage--;
+        }
       }
       self.searchTokens(self.currentPage);
     };
@@ -157,21 +165,21 @@
   }
 
   angular
-      .module('dashboardApp')
-      .component(
-          'tokensAccesslist',
-          {
-            require : {
-              $parent : '^tokens'
-            },
-            bindings: {
-              clients: '=',
-              users: '=',
-              tokens: '<',
-              total: '<'
-            },
-            templateUrl : '/resources/iam/js/dashboard-app/components/tokens/accesslist/tokens.accesslist.component.html',
-            controller : [ '$q', '$scope', '$rootScope', '$uibModal', 'ModalService',
-                'TokensService', 'scimFactory', 'clipboardService', 'Utils', 'toaster', AccessTokensListController ]
-          });
+    .module('dashboardApp')
+    .component(
+      'tokensAccesslist',
+      {
+        require: {
+          $parent: '^tokens'
+        },
+        bindings: {
+          clients: '=',
+          users: '=',
+          tokens: '<',
+          total: '<'
+        },
+        templateUrl: '/resources/iam/js/dashboard-app/components/tokens/accesslist/tokens.accesslist.component.html',
+        controller: ['$q', '$scope', '$rootScope', '$uibModal', 'ModalService',
+          'TokensService', 'scimFactory', 'clipboardService', 'Utils', 'toaster', AccessTokensListController]
+      });
 })();
