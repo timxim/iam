@@ -156,11 +156,11 @@ public class TestTokensUtils {
     return token;
   }
 
-  public Date getDateOffsetBy(int offsetDays) {
+  public Date getDateOffsetBy(int offsetMins) {
 
     Calendar cal = Calendar.getInstance();
     cal.setTime(new Date());
-    cal.add(Calendar.DATE, offsetDays);
+    cal.add(Calendar.MINUTE, offsetMins);
     return cal.getTime();
   }
 
