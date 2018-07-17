@@ -43,7 +43,7 @@
   }
 
   function RefreshTokensListController($q, $scope, $rootScope, $uibModal, ModalService,
-      TokensService, scimFactory, clipboardService, Utils, toaster) {
+      TokensService, scimFactory, Utils, toaster) {
 
     var self = this;
 
@@ -52,6 +52,8 @@
     self.currentOffset = 1;
     self.itemsPerPage = 10;
     self.totalResults = self.total;
+    self.sortByValue = "expiration";
+    self.sortDirection = "desc";
 
     self.$onInit = function() {
       console.debug("init RefreshTokensListController", self.tokens, self.currentPage, self.currentOffset, self.totalResults);
@@ -61,11 +63,6 @@
         console.debug("received refreshRefreshTokensList event");
         self.searchTokens(1);
       });
-
-    self.copyToClipboard = function(toCopy) {
-      clipboardService.copyToClipboard(toCopy);
-      toaster.pop({ type: 'success', body: 'Token copied to clipboard!' });
-    };
 
     self.updateRefreshTokenCount = function(responseValue) {
         if (self.clientSelected || self.userSelected) {
@@ -115,15 +112,21 @@
 
     self.getRefreshTokenList = function(startIndex, count) {
       if (self.clientSelected && self.userSelected) {
-        return TokensService.getRefreshTokensFilteredByUserAndClient(startIndex, count, self.userSelected.userName, self.clientSelected.clientId);
+        return TokensService.getRefreshTokensFilteredByUserAndClient(startIndex, count, self.userSelected.userName, self.clientSelected.clientId, self.sortByValue, self.sortDirection);
       } 
       if (self.clientSelected) {
-        return TokensService.getRefreshTokensFilteredByClient(startIndex, count, self.clientSelected.clientId);
+        return TokensService.getRefreshTokensFilteredByClient(startIndex, count, self.clientSelected.clientId, self.sortByValue, self.sortDirection);
       } 
       if (self.userSelected) {
-        return TokensService.getRefreshTokensFilteredByUser(startIndex, count, self.userSelected.userName);
+        return TokensService.getRefreshTokensFilteredByUser(startIndex, count, self.userSelected.userName, self.sortByValue, self.sortDirection);
       }
-      return TokensService.getRefreshTokens(startIndex, count);
+      return TokensService.getRefreshTokens(startIndex, count, self.sortByValue, self.sortDirection);
+    }
+
+    self.sortBy = function (sortByValue, sortDirection) {
+      self.sortByValue = sortByValue;
+      self.sortDirection = sortDirection;
+      self.searchTokens(self.currentPage);
     }
 
     self.handleRevokeSuccess = function(token) {
@@ -172,6 +175,6 @@
             },
             templateUrl : '/resources/iam/js/dashboard-app/components/tokens/refreshlist/tokens.refreshlist.component.html',
             controller : [ '$q', '$scope', '$rootScope', '$uibModal', 'ModalService',
-                'TokensService', 'scimFactory', 'clipboardService', 'Utils', 'toaster', RefreshTokensListController ]
+                'TokensService', 'scimFactory', 'Utils', 'toaster', RefreshTokensListController ]
           });
 })();

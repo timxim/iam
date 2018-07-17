@@ -66,9 +66,20 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Client</th>
-                        <th>User</th>
-                        <th>Value</th>
+                        <th>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('client', 'asc')" ng-if="$ctrl.sortDirection == 'desc'">Client</span>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('client', 'desc')" ng-if="$ctrl.sortDirection == 'asc'">Client</span>
+                            &nbsp;
+                            <i class="fa fa-angle-down" ng-if="$ctrl.sortDirection == 'desc' && $ctrl.sortByValue == 'client'"></i>
+                            <i class="fa fa-angle-up" ng-if="$ctrl.sortDirection == 'asc' && $ctrl.sortByValue == 'client'"></i>
+                        </th>
+                        <th>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('user', 'asc')" ng-if="$ctrl.sortDirection == 'desc'">User</span>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('user', 'desc')" ng-if="$ctrl.sortDirection == 'asc'">User</span>
+                            &nbsp;
+                            <i class="fa fa-angle-down" ng-if="$ctrl.sortDirection == 'desc' && $ctrl.sortByValue == 'user'"></i>
+                            <i class="fa fa-angle-up" ng-if="$ctrl.sortDirection == 'asc' && $ctrl.sortByValue == 'user'"></i>
+                        </th>
                         <th>Scopes</th>
                         <th>
                             <span style="cursor: pointer" ng-click="$ctrl.sortBy('expiration', 'asc')" ng-if="$ctrl.sortDirection == 'desc'">Expires</span>
@@ -96,14 +107,6 @@
                         </td>
                         <td class="align-middle" ng-if="token.user == null">
                             <h5><small><i>This is a client specific token, not bound to a user account.</i></small></h5>
-                        </td>
-                        <td class="align-middle">
-                            <div class="input-group ">
-                                <input type="text" class="form-control" size=40 value="{{token.value}}" readonly />
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button" title="Copy to Clipboard" ng-click="$ctrl.copyToClipboard(token.value)"><i class="fa fa-clipboard"></i></button>
-                                </span>
-                            </div>
                         </td>
                         <td class="align-middle">
                             <h5>

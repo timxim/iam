@@ -43,7 +43,7 @@
   }
 
   function AccessTokensListController($q, $scope, $rootScope, $uibModal, ModalService,
-    TokensService, scimFactory, clipboardService, Utils, toaster) {
+    TokensService, scimFactory, Utils, toaster) {
 
     var self = this;
 
@@ -63,11 +63,6 @@
       console.debug("received refreshAccessTokensList event");
       self.searchTokens(1);
     });
-
-    self.copyToClipboard = function (toCopy) {
-      clipboardService.copyToClipboard(toCopy);
-      toaster.pop({ type: 'success', body: 'Token copied to clipboard!' });
-    };
 
     self.updateAccessTokenCount = function (responseValue) {
       if (self.clientSelected || self.userSelected) {
@@ -180,6 +175,6 @@
         },
         templateUrl: '/resources/iam/js/dashboard-app/components/tokens/accesslist/tokens.accesslist.component.html',
         controller: ['$q', '$scope', '$rootScope', '$uibModal', 'ModalService',
-          'TokensService', 'scimFactory', 'clipboardService', 'Utils', 'toaster', AccessTokensListController]
+          'TokensService', 'scimFactory', 'Utils', 'toaster', AccessTokensListController]
       });
 })();

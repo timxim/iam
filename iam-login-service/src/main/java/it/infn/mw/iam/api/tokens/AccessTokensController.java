@@ -21,6 +21,12 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -48,6 +54,9 @@ import it.infn.mw.iam.core.user.exception.IamAccountException;
 public class AccessTokensController
     extends AbstractTokensController<AccessToken, OAuth2AccessTokenEntity> {
 
+  private final Set<String> allowedAttributes = Collections
+    .unmodifiableSet(new HashSet<>(Arrays.asList("id", "scopes", "expiration", "client", "user")));
+
   @Autowired
   private TokenService<OAuth2AccessTokenEntity> tokenService;
 
@@ -64,7 +73,7 @@ public class AccessTokensController
     TokensPageRequest pageRequest =
         buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
     ListResponseDTO<AccessToken> results = getResponse(pageRequest);
-    return filterAttributes(results, attributes);
+    return filterAttributes(results, attributes, allowedAttributes);
   }
 
   @RequestMapping(method = DELETE)

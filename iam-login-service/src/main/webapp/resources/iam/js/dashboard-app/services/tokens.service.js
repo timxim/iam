@@ -137,7 +137,9 @@ function TokensService($q, $rootScope, $http, $httpParamSerializer) {
         console.debug("Sort: ", sortBy, sortDirection);
         return doGetAccessTokens($httpParamSerializer({
             'startIndex': startIndex,
-            'count': count
+            'count': count,
+            'sortBy': sortBy,
+            'sortDirection': sortDirection
         }));
     }
 

@@ -27,7 +27,7 @@
     };
 
     self.loadFirstPageOfAccessTokens = function() {
-        return TokensService.getAccessTokens(1,10).then(function(r) {
+        return TokensService.getAccessTokens(1,10,"expiration","desc").then(function(r) {
             self.accessTokensFirstResponse = r.data;
             $rootScope.accessTokensCount = r.data.totalResults;
             console.debug('accessTokensFirstResponse', self.accessTokensFirstResponse);
@@ -36,7 +36,7 @@
     }
 
     self.loadFirstPageOfRefreshTokens = function() {
-        return TokensService.getRefreshTokens(1,10).then(function(r) {
+        return TokensService.getRefreshTokens(1,10,"expiration","desc").then(function(r) {
             self.refreshTokensFirstResponse = r.data;
             $rootScope.refreshTokensCount = r.data.totalResults;
             console.debug('refreshTokensFirstResponse', self.refreshTokensFirstResponse);

@@ -21,6 +21,12 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -47,6 +53,9 @@ import it.infn.mw.iam.core.user.exception.IamAccountException;
 @RequestMapping(REFRESH_TOKENS_ENDPOINT)
 public class RefreshTokensController extends AbstractTokensController<RefreshToken, OAuth2RefreshTokenEntity> {
 
+  private final Set<String> allowedAttributes = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList("id", "client", "user", "expiration")));
+
   @Autowired
   private TokenService<OAuth2RefreshTokenEntity> tokenService;
 
@@ -63,7 +72,7 @@ public class RefreshTokensController extends AbstractTokensController<RefreshTok
     TokensPageRequest pageRequest =
         buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
     ListResponseDTO<RefreshToken> results = getResponse(pageRequest);
-    return filterAttributes(results, attributes);
+    return filterAttributes(results, attributes, allowedAttributes);
   }
   
   @RequestMapping(method = DELETE)

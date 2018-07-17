@@ -139,7 +139,7 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     OAuth2AccessTokenEntity at = buildAccessToken(client, TESTUSER_USERNAME, SCOPES);
 
     MultiValueMap<String, String> params =
-        MultiValueMapBuilder.builder().attributes("user,idToken").build();
+        MultiValueMapBuilder.builder().attributes("user,value").build();
 
     ListResponseDTO<AccessToken> atl = getAccessTokenList(params);
 
@@ -155,6 +155,7 @@ public class AccessTokenGetListTests extends TestTokensUtils {
     assertThat(remoteAt.getId(), equalTo(at.getId()));
     assertThat(remoteAt.getClient(), equalTo(null));
     assertThat(remoteAt.getExpiration(), equalTo(null));
+    assertThat(remoteAt.getValue(), equalTo(null));
 
     assertThat(remoteAt.getUser().getId(), equalTo(user.getUuid()));
     assertThat(remoteAt.getUser().getUserName(), equalTo(user.getUsername()));

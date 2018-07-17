@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.converter.json.MappingJacksonValue;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
+
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.CharMatcher;
@@ -34,6 +35,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import it.infn.mw.iam.api.common.Converter;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.common.OffsetPageable;
@@ -78,24 +80,33 @@ public abstract class AbstractTokensController<T, E> {
 
     Set<String> result = new HashSet<>();
     if (!Strings.isNullOrEmpty(attributesParameter)) {
-      result = Sets.newHashSet(Splitter.on(CharMatcher.anyOf(".,")).trimResults().omitEmptyStrings()
-          .split(attributesParameter));
+      result = Sets
+        .newHashSet(Splitter.on(CharMatcher.anyOf(".,")).trimResults().omitEmptyStrings().split(
+            attributesParameter));
     }
     result.add("id");
     return result;
   }
 
-  protected MappingJacksonValue filterAttributes(ListResponseDTO<T> result, String attributes) {
+  protected MappingJacksonValue filterAttributes(ListResponseDTO<T> result, String attributes, Set<String> allowedAttributes) {
 
     MappingJacksonValue wrapper = new MappingJacksonValue(result);
 
-    if (attributes != null) {
+    if (!Strings.isNullOrEmpty(attributes)) {
+
+      /* parse requested attributes */
       Set<String> includeAttributes = parseAttributes(attributes);
+      /* filter only allowed attributes */
+      includeAttributes.retainAll(allowedAttributes);
+      /* set filter */
+      wrapper.setFilters(new SimpleFilterProvider().addFilter("attributeFilter",
+          SimpleBeanPropertyFilter.filterOutAllExcept(includeAttributes)));
 
-      FilterProvider filterProvider = new SimpleFilterProvider().addFilter("attributeFilter",
-          SimpleBeanPropertyFilter.filterOutAllExcept(includeAttributes));
+    } else {
 
-      wrapper.setFilters(filterProvider);
+      /* set filter only if allowed attributes are defined */
+      wrapper.setFilters(new SimpleFilterProvider().addFilter("attributeFilter",
+          SimpleBeanPropertyFilter.filterOutAllExcept(allowedAttributes)));
     }
 
     return wrapper;

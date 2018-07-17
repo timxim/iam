@@ -135,7 +135,7 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
         buildAccessToken(client, TESTUSER_USERNAME, SCOPES).getRefreshToken();
 
     MultiValueMap<String, String> params =
-        MultiValueMapBuilder.builder().attributes("user,idToken").build();
+        MultiValueMapBuilder.builder().attributes("user,value").build();
 
     ListResponseDTO<RefreshToken> atl = getRefreshTokenList(params);
 
@@ -150,6 +150,7 @@ public class RefreshTokenGetListTests extends TestTokensUtils {
     assertThat(remoteRt.getId(), equalTo(at.getId()));
     assertThat(remoteRt.getClient(), equalTo(null));
     assertThat(remoteRt.getExpiration(), equalTo(null));
+    assertThat(remoteRt.getValue(), equalTo(null));
     assertThat(remoteRt.getUser().getId(), equalTo(user.getUuid()));
     assertThat(remoteRt.getUser().getUserName(), equalTo(user.getUsername()));
     assertThat(remoteRt.getUser().getRef(),
