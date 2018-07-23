@@ -15,6 +15,9 @@
  */
 package it.infn.mw.iam.api.tokens;
 
+import static com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter.filterOutAllExcept;
+import static com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter.serializeAllExcept;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +31,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.converter.json.MappingJacksonValue;
 
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -50,13 +52,17 @@ public abstract class AbstractTokensController<T, E> {
   public static final String APPLICATION_JSON_CONTENT_TYPE = "application/json";
   public static final int TOKENS_MAX_PAGE_SIZE = 20;
 
+  private static final String FILTER_NAME = "attributeFilter";
+  private static final String ID_FIELD = "id";
+  private static final String VALUE_FIELD = "value";
+
   @Autowired
   private Converter<T, E> converter;
 
   @Autowired
   private TokenService<E> tokenService;
 
-  protected TokensPageRequest buildTokensPageRequest(Integer startIndex, Integer count,
+  public TokensPageRequest buildTokensPageRequest(Integer startIndex, Integer count,
       String clientId, String userId, String sortBy, String sortDirection) {
 
     return buildPageRequest(startIndex, count, TOKENS_MAX_PAGE_SIZE, clientId, userId, sortBy,
@@ -76,7 +82,7 @@ public abstract class AbstractTokensController<T, E> {
     return builder.build();
   }
 
-  protected Set<String> parseAttributes(final String attributesParameter) {
+  private Set<String> parseAttributes(final String attributesParameter) {
 
     Set<String> result = new HashSet<>();
     if (!Strings.isNullOrEmpty(attributesParameter)) {
@@ -84,40 +90,44 @@ public abstract class AbstractTokensController<T, E> {
         .newHashSet(Splitter.on(CharMatcher.anyOf(".,")).trimResults().omitEmptyStrings().split(
             attributesParameter));
     }
-    result.add("id");
     return result;
   }
 
-  protected MappingJacksonValue filterAttributes(ListResponseDTO<T> result, String attributes, Set<String> allowedAttributes) {
+  public MappingJacksonValue filterTokensResponse(ListResponseDTO<T> result, String attributes) {
 
     MappingJacksonValue wrapper = new MappingJacksonValue(result);
+    SimpleFilterProvider filterProvider = new SimpleFilterProvider();
 
     if (!Strings.isNullOrEmpty(attributes)) {
 
-      /* parse requested attributes */
-      Set<String> includeAttributes = parseAttributes(attributes);
-      /* filter only allowed attributes */
-      includeAttributes.retainAll(allowedAttributes);
-      /* set filter */
-      wrapper.setFilters(new SimpleFilterProvider().addFilter("attributeFilter",
-          SimpleBeanPropertyFilter.filterOutAllExcept(includeAttributes)));
+      Set<String> filteredAttributes = parseAttributes(attributes);
+      filteredAttributes.add(ID_FIELD);
+      filteredAttributes.remove(VALUE_FIELD);
+      filterProvider.addFilter(FILTER_NAME, filterOutAllExcept(filteredAttributes));
 
     } else {
 
-      /* set filter only if allowed attributes are defined */
-      wrapper.setFilters(new SimpleFilterProvider().addFilter("attributeFilter",
-          SimpleBeanPropertyFilter.filterOutAllExcept(allowedAttributes)));
+      filterProvider.addFilter(FILTER_NAME, serializeAllExcept(VALUE_FIELD));
     }
 
+    wrapper.setFilters(filterProvider);
     return wrapper;
   }
 
-  protected ListResponseDTO<T> buildCountResponse(long countResponse) {
+  public MappingJacksonValue filterTokenResponse(T result) {
+
+    MappingJacksonValue wrapper = new MappingJacksonValue(result);
+    wrapper.setFilters(
+        new SimpleFilterProvider().addFilter(FILTER_NAME, serializeAllExcept(VALUE_FIELD)));
+    return wrapper;
+  }
+
+  private ListResponseDTO<T> buildCountResponse(long countResponse) {
 
     return new ListResponseDTO.Builder<T>().totalResults(countResponse).build();
   }
 
-  protected ListResponseDTO<T> buildListResponse(Page<E> p, OffsetPageable op) {
+  private ListResponseDTO<T> buildListResponse(Page<E> p, OffsetPageable op) {
 
     ListResponseDTO.Builder<T> builder = ListResponseDTO.builder();
     builder.itemsPerPage(p.getContent().size());
@@ -131,12 +141,12 @@ public abstract class AbstractTokensController<T, E> {
     return builder.build();
   }
 
-  protected T buildTokenResponse(E entity) {
+  public T getTokenResponse(E entity) {
 
     return converter.dtoFromEntity(entity);
   }
 
-  protected OffsetPageable getOffsetPageable(TokensPageRequest pageRequest) {
+  private OffsetPageable getOffsetPageable(TokensPageRequest pageRequest) {
 
     return new OffsetPageable(pageRequest.getStartIndex() - 1, pageRequest.getCount(),
         getSort(pageRequest));
@@ -173,7 +183,7 @@ public abstract class AbstractTokensController<T, E> {
     return sort;
   }
 
-  protected ListResponseDTO<T> getResponse(TokensPageRequest pageRequest) {
+  public ListResponseDTO<T> getTokensResponse(TokensPageRequest pageRequest) {
 
     if (pageRequest.getCount() == 0) {
       return getCountResponse(pageRequest);

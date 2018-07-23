@@ -22,11 +22,6 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -39,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 import it.infn.mw.iam.api.common.ErrorDTO;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.tokens.exception.TokenNotFoundException;
@@ -51,10 +47,8 @@ import it.infn.mw.iam.core.user.exception.IamAccountException;
 @Transactional
 @PreAuthorize("hasRole('ADMIN')")
 @RequestMapping(REFRESH_TOKENS_ENDPOINT)
-public class RefreshTokensController extends AbstractTokensController<RefreshToken, OAuth2RefreshTokenEntity> {
-
-  private final Set<String> allowedAttributes = Collections.unmodifiableSet(
-      new HashSet<>(Arrays.asList("id", "client", "user", "expiration")));
+public class RefreshTokensController
+    extends AbstractTokensController<RefreshToken, OAuth2RefreshTokenEntity> {
 
   @Autowired
   private TokenService<OAuth2RefreshTokenEntity> tokenService;
@@ -71,10 +65,10 @@ public class RefreshTokensController extends AbstractTokensController<RefreshTok
 
     TokensPageRequest pageRequest =
         buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
-    ListResponseDTO<RefreshToken> results = getResponse(pageRequest);
-    return filterAttributes(results, attributes, allowedAttributes);
+    ListResponseDTO<RefreshToken> results = getTokensResponse(pageRequest);
+    return filterTokensResponse(results, attributes);
   }
-  
+
   @RequestMapping(method = DELETE)
   @ResponseStatus(NO_CONTENT)
   public void deleteAllTokens() {
@@ -82,10 +76,10 @@ public class RefreshTokensController extends AbstractTokensController<RefreshTok
   }
 
   @RequestMapping(method = GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
-  public RefreshToken getRefreshToken(@PathVariable("id") Long id) {
+  public MappingJacksonValue getRefreshToken(@PathVariable("id") Long id) {
 
-    return buildTokenResponse(
-        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id)));
+    return filterTokenResponse(getTokenResponse(
+        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id))));
   }
 
   @RequestMapping(method = DELETE, value = "/{id}")

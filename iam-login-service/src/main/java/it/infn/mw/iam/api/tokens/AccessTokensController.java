@@ -22,13 +22,9 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -39,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 import it.infn.mw.iam.api.common.ErrorDTO;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.tokens.exception.TokenNotFoundException;
@@ -53,9 +50,6 @@ import it.infn.mw.iam.core.user.exception.IamAccountException;
 @RequestMapping(ACCESS_TOKENS_ENDPOINT)
 public class AccessTokensController
     extends AbstractTokensController<AccessToken, OAuth2AccessTokenEntity> {
-
-  private final Set<String> allowedAttributes = Collections
-    .unmodifiableSet(new HashSet<>(Arrays.asList("id", "scopes", "expiration", "client", "user")));
 
   @Autowired
   private TokenService<OAuth2AccessTokenEntity> tokenService;
@@ -72,8 +66,8 @@ public class AccessTokensController
 
     TokensPageRequest pageRequest =
         buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
-    ListResponseDTO<AccessToken> results = getResponse(pageRequest);
-    return filterAttributes(results, attributes, allowedAttributes);
+    ListResponseDTO<AccessToken> results = getTokensResponse(pageRequest);
+    return filterTokensResponse(results, attributes);
   }
 
   @RequestMapping(method = DELETE)
@@ -84,10 +78,10 @@ public class AccessTokensController
   }
 
   @RequestMapping(method = GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
-  public AccessToken getAccessToken(@PathVariable("id") Long id) {
+  public MappingJacksonValue getAccessToken(@PathVariable("id") Long id) {
 
-    return buildTokenResponse(
-        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id)));
+    return filterTokenResponse(getTokenResponse(
+        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id))));
   }
 
   @RequestMapping(method = DELETE, value = "/{id}")
@@ -105,7 +99,8 @@ public class AccessTokensController
   }
 
   @ResponseStatus(value = INTERNAL_SERVER_ERROR)
-  @ExceptionHandler({IamAccountException.class, InvalidClientException.class})
+  @ExceptionHandler({IamAccountException.class, InvalidClientException.class,
+      HttpMessageNotWritableException.class})
   public ErrorDTO accountNotFoundError(Exception ex) {
 
     return ErrorDTO.fromString(ex.getMessage());
