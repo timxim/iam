@@ -17,9 +17,7 @@ package it.infn.mw.iam.test.api.tokens;
 
 import static it.infn.mw.iam.api.tokens.AbstractTokensController.APPLICATION_JSON_CONTENT_TYPE;
 import static it.infn.mw.iam.api.tokens.Constants.ACCESS_TOKENS_ENDPOINT;
-import static it.infn.mw.iam.api.tokens.Constants.ACCESS_TOKENS_ME_ENDPOINT;
 import static it.infn.mw.iam.api.tokens.Constants.REFRESH_TOKENS_ENDPOINT;
-import static it.infn.mw.iam.api.tokens.Constants.REFRESH_TOKENS_ME_ENDPOINT;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -201,19 +199,6 @@ public class TestTokensUtils {
     return getAccessTokenList(ACCESS_TOKENS_ENDPOINT, params);
   }
 
-  protected ListResponseDTO<AccessToken> getAccessTokenMeList() throws JsonParseException,
-      JsonMappingException, UnsupportedEncodingException, IOException, Exception {
-
-    return getAccessTokenList(ACCESS_TOKENS_ME_ENDPOINT, new LinkedMultiValueMap<String, String>());
-  }
-
-  protected ListResponseDTO<AccessToken> getAccessTokenMeList(MultiValueMap<String, String> params)
-      throws JsonParseException, JsonMappingException, UnsupportedEncodingException, IOException,
-      Exception {
-
-    return getAccessTokenList(ACCESS_TOKENS_ME_ENDPOINT, params);
-  }
-
   private ListResponseDTO<AccessToken> getAccessTokenList(String endpoint,
       MultiValueMap<String, String> params) throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
@@ -243,19 +228,6 @@ public class TestTokensUtils {
     return getRefreshTokenList(REFRESH_TOKENS_ENDPOINT, params);
   }
 
-  protected ListResponseDTO<RefreshToken> getRefreshTokenMeList() throws JsonParseException,
-      JsonMappingException, UnsupportedEncodingException, IOException, Exception {
-
-    return getRefreshTokenMeList(new LinkedMultiValueMap<String, String>());
-  }
-
-  protected ListResponseDTO<RefreshToken> getRefreshTokenMeList(
-      MultiValueMap<String, String> params) throws JsonParseException, JsonMappingException,
-      UnsupportedEncodingException, IOException, Exception {
-
-    return getRefreshTokenList(REFRESH_TOKENS_ME_ENDPOINT, params);
-  }
-
   private ListResponseDTO<RefreshToken> getRefreshTokenList(String endpoint,
       MultiValueMap<String, String> params) throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
@@ -276,12 +248,6 @@ public class TestTokensUtils {
       UnsupportedEncodingException, IOException, Exception {
 
     return getAccessToken(ACCESS_TOKENS_ENDPOINT, id);
-  }
-
-  protected AccessToken getAccessTokenMe(String id) throws JsonParseException, JsonMappingException,
-    UnsupportedEncodingException, IOException, Exception {
-
-    return getAccessToken(ACCESS_TOKENS_ME_ENDPOINT, id);
   }
 
   protected AccessToken getAccessToken(String endpoint, String id) throws JsonParseException, JsonMappingException,
@@ -307,12 +273,6 @@ public class TestTokensUtils {
       UnsupportedEncodingException, IOException, Exception {
 
     return getRefreshToken(REFRESH_TOKENS_ENDPOINT, id);
-  }
-
-  protected RefreshToken getRefreshTokenMe(String id) throws JsonParseException,
-      JsonMappingException, UnsupportedEncodingException, IOException, Exception {
-
-    return getRefreshToken(REFRESH_TOKENS_ME_ENDPOINT, id);
   }
 
   protected RefreshToken getRefreshToken(String endpoint, String id) throws JsonParseException,
