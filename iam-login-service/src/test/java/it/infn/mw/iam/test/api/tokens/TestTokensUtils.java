@@ -166,7 +166,7 @@ public class TestTokensUtils {
 
     Calendar cal = Calendar.getInstance();
     cal.setTime(new Date());
-    cal.add(Calendar.MINUTE, offsetMins);
+    cal.add(Calendar.HOUR, offsetMins);
     return cal.getTime();
   }
 
