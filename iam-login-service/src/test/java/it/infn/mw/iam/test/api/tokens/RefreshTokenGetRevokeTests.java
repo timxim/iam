@@ -16,6 +16,7 @@
 package it.infn.mw.iam.test.api.tokens;
 
 import static it.infn.mw.iam.api.tokens.AbstractTokensController.APPLICATION_JSON_CONTENT_TYPE;
+import static it.infn.mw.iam.api.tokens.Constants.REFRESH_TOKENS_ENDPOINT;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -88,7 +89,7 @@ public class RefreshTokenGetRevokeTests extends TestTokensUtils {
     OAuth2RefreshTokenEntity rt =
         buildAccessToken(client, TESTUSER_USERNAME, SCOPES).getRefreshToken();
 
-    String path = String.format("%s/%d", REFRESH_TOKENS_BASE_PATH, rt.getId());
+    String path = String.format("%s/%d", REFRESH_TOKENS_ENDPOINT, rt.getId());
 
     RefreshToken remoteRt =
         mapper.readValue(mvc.perform(get(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
@@ -116,7 +117,7 @@ public class RefreshTokenGetRevokeTests extends TestTokensUtils {
   public void getRefreshTokenNotFound() throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
 
-    String path = String.format("%s/%d", REFRESH_TOKENS_BASE_PATH, FAKE_TOKEN_ID);
+    String path = String.format("%s/%d", REFRESH_TOKENS_ENDPOINT, FAKE_TOKEN_ID);
     mvc.perform(get(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
       .andExpect(status().isNotFound());
   }
@@ -128,7 +129,7 @@ public class RefreshTokenGetRevokeTests extends TestTokensUtils {
     ClientDetailsEntity client = loadTestClient(TEST_CLIENT_ID);
     OAuth2RefreshTokenEntity rt =
         buildAccessToken(client, TESTUSER_USERNAME, SCOPES).getRefreshToken();
-    String path = String.format("%s/%d", REFRESH_TOKENS_BASE_PATH, rt.getId());
+    String path = String.format("%s/%d", REFRESH_TOKENS_ENDPOINT, rt.getId());
 
     mvc.perform(delete(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
       .andExpect(status().isNoContent());
@@ -140,7 +141,7 @@ public class RefreshTokenGetRevokeTests extends TestTokensUtils {
   public void revokeRefreshTokenNotFound() throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
 
-    String path = String.format("%s/%d", REFRESH_TOKENS_BASE_PATH, FAKE_TOKEN_ID);
+    String path = String.format("%s/%d", REFRESH_TOKENS_ENDPOINT, FAKE_TOKEN_ID);
     mvc.perform(delete(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
       .andExpect(status().isNotFound());
   }
@@ -154,7 +155,7 @@ public class RefreshTokenGetRevokeTests extends TestTokensUtils {
     
     assertThat(refreshTokenRepository.count(), equalTo(2L));
     
-    mvc.perform(delete(REFRESH_TOKENS_BASE_PATH)).andExpect(status().isNoContent());
+    mvc.perform(delete(REFRESH_TOKENS_ENDPOINT)).andExpect(status().isNoContent());
     
     assertThat(refreshTokenRepository.count(), equalTo(0L));
 

@@ -16,6 +16,7 @@
 package it.infn.mw.iam.test.api.tokens;
 
 import static it.infn.mw.iam.api.tokens.AbstractTokensController.APPLICATION_JSON_CONTENT_TYPE;
+import static it.infn.mw.iam.api.tokens.Constants.ACCESS_TOKENS_ENDPOINT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,14 +60,14 @@ public class AccessTokenAuthenticatedTests extends TestTokensUtils {
   @WithMockOAuthUser(user = TESTUSER_USERNAME, authorities = {"ROLE_USER"})
   public void forbiddenOnGettingListTest() throws Exception {
 
-    mvc.perform(get(ACCESS_TOKENS_BASE_PATH).contentType(APPLICATION_JSON_CONTENT_TYPE)).andExpect(status().isForbidden());
+    mvc.perform(get(ACCESS_TOKENS_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)).andExpect(status().isForbidden());
   }
 
   @Test
   @WithMockOAuthUser(user = TESTUSER_USERNAME, authorities = {"ROLE_USER"})
   public void forbiddenOnRevokingTest() throws Exception {
 
-    String path = String.format("%s/%d", ACCESS_TOKENS_BASE_PATH, FAKE_TOKEN_ID);
+    String path = String.format("%s/%d", ACCESS_TOKENS_ENDPOINT, FAKE_TOKEN_ID);
     mvc.perform(delete(path).contentType(APPLICATION_JSON_CONTENT_TYPE)).andExpect(status().isForbidden());
   }
 }

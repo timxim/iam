@@ -67,7 +67,7 @@ public class AccessTokensController
     TokensPageRequest pageRequest =
         buildTokensPageRequest(startIndex, count, clientId, userId, sortBy, sortDirection);
     ListResponseDTO<AccessToken> results = getTokensResponse(pageRequest);
-    return filterTokensResponse(results, attributes);
+    return filterTokensResponse(results, attributes, "value");
   }
 
   @RequestMapping(method = DELETE)
@@ -80,8 +80,9 @@ public class AccessTokensController
   @RequestMapping(method = GET, value = "/{id}", produces = APPLICATION_JSON_CONTENT_TYPE)
   public MappingJacksonValue getAccessToken(@PathVariable("id") Long id) {
 
-    return filterTokenResponse(getTokenResponse(
-        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id))));
+    AccessToken token = getTokenResponse(
+        tokenService.getTokenById(id).orElseThrow(() -> new TokenNotFoundException(id)));
+    return filterTokenResponse(token, null, "value");
   }
 
   @RequestMapping(method = DELETE, value = "/{id}")

@@ -16,6 +16,7 @@
 package it.infn.mw.iam.test.api.tokens;
 
 import static it.infn.mw.iam.api.tokens.AbstractTokensController.APPLICATION_JSON_CONTENT_TYPE;
+import static it.infn.mw.iam.api.tokens.Constants.ACCESS_TOKENS_ENDPOINT;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -70,8 +71,8 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
 
   @Autowired
   private MockOAuth2Filter mockOAuth2Filter;
-  
-  
+
+
 
   @Before
   public void setup() {
@@ -94,7 +95,7 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
 
     OAuth2AccessTokenEntity at = buildAccessToken(client, TESTUSER_USERNAME, SCOPES);
 
-    String path = String.format("%s/%d", ACCESS_TOKENS_BASE_PATH, at.getId());
+    String path = String.format("%s/%d", ACCESS_TOKENS_ENDPOINT, at.getId());
 
     AccessToken remoteAt =
         mapper.readValue(mvc.perform(get(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
@@ -126,7 +127,7 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
   public void getAccessTokenNotFound() throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
 
-    String path = String.format("%s/%d", ACCESS_TOKENS_BASE_PATH, FAKE_TOKEN_ID);
+    String path = String.format("%s/%d", ACCESS_TOKENS_ENDPOINT, FAKE_TOKEN_ID);
     mvc.perform(get(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
       .andExpect(status().isNotFound());
   }
@@ -137,7 +138,7 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
 
     ClientDetailsEntity client = loadTestClient(TEST_CLIENT_ID);
     OAuth2AccessTokenEntity at = buildAccessToken(client, TESTUSER_USERNAME, SCOPES);
-    String path = String.format("%s/%d", ACCESS_TOKENS_BASE_PATH, at.getId());
+    String path = String.format("%s/%d", ACCESS_TOKENS_ENDPOINT, at.getId());
 
     mvc.perform(delete(path).contentType(APPLICATION_JSON_CONTENT_TYPE))
       .andExpect(status().isNoContent());
@@ -149,9 +150,8 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
   public void revokeAccessTokenNotFound() throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
 
-    String path = String.format("%s/%d", ACCESS_TOKENS_BASE_PATH, FAKE_TOKEN_ID);
-    mvc.perform(delete(path))
-      .andExpect(status().isNotFound());
+    String path = String.format("%s/%d", ACCESS_TOKENS_ENDPOINT, FAKE_TOKEN_ID);
+    mvc.perform(delete(path)).andExpect(status().isNotFound());
   }
 
   @Test
@@ -160,11 +160,11 @@ public class AccessTokenGetRevokeTests extends TestTokensUtils {
     ClientDetailsEntity client = loadTestClient(TEST_CLIENT_ID);
     buildAccessToken(client, TESTUSER_USERNAME, SCOPES);
     buildAccessToken(client, TESTUSER_USERNAME, SCOPES);
-    
+
     assertThat(accessTokenRepository.count(), equalTo(2L));
-    
-    mvc.perform(delete(ACCESS_TOKENS_BASE_PATH)).andExpect(status().isNoContent());
-    
+
+    mvc.perform(delete(ACCESS_TOKENS_ENDPOINT)).andExpect(status().isNoContent());
+
     assertThat(accessTokenRepository.count(), equalTo(0L));
   }
 }

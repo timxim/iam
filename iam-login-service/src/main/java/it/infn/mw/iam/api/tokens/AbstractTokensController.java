@@ -15,9 +15,6 @@
  */
 package it.infn.mw.iam.api.tokens;
 
-import static com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter.filterOutAllExcept;
-import static com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter.serializeAllExcept;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +27,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.converter.json.MappingJacksonValue;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -44,6 +48,8 @@ import it.infn.mw.iam.api.common.OffsetPageable;
 import it.infn.mw.iam.api.tokens.service.TokenService;
 import it.infn.mw.iam.api.tokens.service.paging.DefaultTokensPageRequest;
 import it.infn.mw.iam.api.tokens.service.paging.TokensPageRequest;
+import it.infn.mw.iam.persistence.model.IamAccount;
+import it.infn.mw.iam.persistence.repository.IamAccountRepository;
 
 public abstract class AbstractTokensController<T, E> {
 
@@ -54,13 +60,15 @@ public abstract class AbstractTokensController<T, E> {
 
   private static final String FILTER_NAME = "attributeFilter";
   private static final String ID_FIELD = "id";
-  private static final String VALUE_FIELD = "value";
 
   @Autowired
   private Converter<T, E> converter;
 
   @Autowired
   private TokenService<E> tokenService;
+
+  @Autowired
+  private IamAccountRepository iamAccountRepository;
 
   public TokensPageRequest buildTokensPageRequest(Integer startIndex, Integer count,
       String clientId, String userId, String sortBy, String sortDirection) {
@@ -93,32 +101,22 @@ public abstract class AbstractTokensController<T, E> {
     return result;
   }
 
-  public MappingJacksonValue filterTokensResponse(ListResponseDTO<T> result, String attributes) {
+  public MappingJacksonValue filterTokensResponse(ListResponseDTO<T> result, String includedAttrs,
+      String excludedAttrs) {
 
     MappingJacksonValue wrapper = new MappingJacksonValue(result);
-    SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-
-    if (!Strings.isNullOrEmpty(attributes)) {
-
-      Set<String> filteredAttributes = parseAttributes(attributes);
-      filteredAttributes.add(ID_FIELD);
-      filteredAttributes.remove(VALUE_FIELD);
-      filterProvider.addFilter(FILTER_NAME, filterOutAllExcept(filteredAttributes));
-
-    } else {
-
-      filterProvider.addFilter(FILTER_NAME, serializeAllExcept(VALUE_FIELD));
-    }
-
-    wrapper.setFilters(filterProvider);
+    Set<String> included = parseAttributes(includedAttrs);
+    Set<String> excluded = parseAttributes(excludedAttrs);
+    wrapper.setFilters(new FilterProviderBuilder().include(included).exclude(excluded).build());
     return wrapper;
   }
 
-  public MappingJacksonValue filterTokenResponse(T result) {
+  public MappingJacksonValue filterTokenResponse(T result, String includedAttrs, String excludedAttrs) {
 
     MappingJacksonValue wrapper = new MappingJacksonValue(result);
-    wrapper.setFilters(
-        new SimpleFilterProvider().addFilter(FILTER_NAME, serializeAllExcept(VALUE_FIELD)));
+    Set<String> included = parseAttributes(includedAttrs);
+    Set<String> excluded = parseAttributes(excludedAttrs);
+    wrapper.setFilters(new FilterProviderBuilder().include(included).exclude(excluded).build());
     return wrapper;
   }
 
@@ -242,5 +240,64 @@ public abstract class AbstractTokensController<T, E> {
     }
 
     return buildListResponse(page, op);
+  }
+
+  protected IamAccount getCurrentUserAccount() throws InvalidRequestException, UsernameNotFoundException {
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    if (auth instanceof OAuth2Authentication) {
+      OAuth2Authentication oauth = (OAuth2Authentication) auth;
+      if (oauth.getUserAuthentication() == null) {
+        throw new InvalidRequestException("No user linked to the current OAuth token");
+      }
+      auth = oauth.getUserAuthentication();
+    }
+
+    final String username = auth.getName();
+
+    return iamAccountRepository.findByUsername(username).orElseThrow(
+        () -> new UsernameNotFoundException("No user mapped to username '" + username + "'"));
+  }
+
+  public class FilterProviderBuilder {
+
+    private Set<String> include = new HashSet<>();
+    private Set<String> exclude = new HashSet<>();
+
+    public FilterProviderBuilder exclude(Set<String> elements) {
+
+      exclude.addAll(elements);
+      return this;
+    }
+
+    public FilterProviderBuilder include(Set<String> elements) {
+
+      include.addAll(elements);
+      return this;
+    }
+
+    public FilterProvider build() {
+
+      SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+      if (include.isEmpty()) {
+        if (exclude.isEmpty()) {
+          // no filter
+          filterProvider.addFilter(FILTER_NAME, SimpleBeanPropertyFilter.serializeAll());
+        } else {
+          // return a subset of attributes - ensure ID is present
+          exclude.remove(ID_FIELD);
+          filterProvider.addFilter(FILTER_NAME, SimpleBeanPropertyFilter.serializeAllExcept(exclude));
+        }
+      } else {
+        // return a subset of attributes - ensure ID is present
+        if (!exclude.isEmpty()) {
+          include.removeAll(exclude);
+        }
+        include.add(ID_FIELD);
+        filterProvider.addFilter(FILTER_NAME, SimpleBeanPropertyFilter.filterOutAllExcept(include));
+      }
+      return filterProvider;
+    }
   }
 }
