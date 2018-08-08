@@ -6,11 +6,13 @@ services:
 dist: trusty
 install:
 - "/bin/bash travis/install-mitreid.sh"
+
 addons:
   sonarcloud:
-    organization: andreaceccanti-github
+    organization: infn
     token:
-      secure: Q2VrpnSpskLti04/MZEUW9viFK/sKXP310p8TymCV8lka3c6465KjpTi87IIzKjEj8M+QICKEiTVTD446nyGMczmdjij29UND69MrVSMhFZfLSastIKmKvP99hiRUbiuQSJ/tow5mLPZk08IaEfYCMC2s1W5kq6ovfzVXPsUdkWNp7e767zyBNvgBgemyq5yPOtEZm4L2AiTkby6SGlWDWxSDw/IBWQ+Zc80KqQVAKW/Nmxg0GhWPPy2KA/jPIy4fdmbKI5+MyLPBgOWZITUpiV0dRSRIJyYVlt+Xikn6eujV6PR0vrBcOO62ncOx/1k69kUWCNC4Q0vv3RoBzCcFptWNBNwqq/U39Uz/mBnWjbRJ84hT3isYAPZ1B4+Ne6r1EqkmMUzzAPOEGP1wkHyz1O/k74NY/tzC7AuirZ779pBgSqQ9db+/Hts6w8GHTcHpHA3AiD8J3Sa4uWy1Z433z+76CXSxxak7LuZS8Qm/BO3CWSXblitY7Wjr6PAwybmUoY4cmNBSfm3EWXtpeIk8/2iaz0FzxTMegBzo2tJgEP1UvW6HulokNzwxRur2kGpGuS/08Gu0KZ9vzrpY7YIqCsnEy5G4niZ2ASUpItyw/IHHIW60DH9GBmiIBWVtkji7njynHIEua8hWdgGCa1VXAglnXJX27OTUh4B/HlBlN0=
+			secure: h/xDLY0dBMCpMBKR6Ss0mEhMUD8lJ6KKo478VOmxiW3f1gEbQq+OvcqBCbUKCikkcsjxWe5WRG2UqmNl7TZjRqmTj2D1QJ5yz3QNHmAT6CLeecSq+WWSm9paydxjIyMgn3naeKOxkwZ6HrpFFapjsryHpjD05IeElocIeQb2wQDwODdcpWPByGkA7bD6iLKO8WXkQd+xPctts0aSp6yNd8xaRCUx7CmAc5dv8Sw5w8AOqUem5Ae/a3Fs+IEr+DAherQUG8Pua7UvuPTA32PNCOlMpa7KpBdW0k58EiKPaYEdbSwQSWhnemi7gve+snupZ9yPVRiB/yM779tiiRR6m9lwpLRk5LfbkBcSqg+85i6JdbCDosOH5em4KGGbI/Y+B1UF4x55NEK/JUU/R1q4LdTcuAyYJlSVAuQWbOYpijF4mEaFpnJm6JsK7m6Yh4CogwquOho42cjcVfO09/kgDlBDRcV7xqCk0JZS17WU44eZK7gOd9NQtVk18RqKUnDTK+dICdmU1QjIXFsNu3FIS5fnhRSp+w4jnyTy5wOu7coYhHv2Mg1QwNOSjNywzEI7GDY5dgw/z4V7TLvvLByDNLQe+7x2z0aMCfag2JIXKFCrj/FliXszWVLR3irKFC2eo5NLMESqPb3Z3qg7L6Pvge7QT6xz7GTUh0oTMEnLSPE=
+
 jdk:
 - openjdk8
 script:
@@ -19,6 +21,7 @@ cache:
   directories:
   - "$HOME/.m2/repository"
   - "$HOME/.sonar/cache"
+
 notifications:
   slack:
     on_success: always
