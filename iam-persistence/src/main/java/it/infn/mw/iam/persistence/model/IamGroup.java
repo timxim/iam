@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,20 @@
 package it.infn.mw.iam.persistence.model;
 
 import java.io.Serializable;
+import java.time.Clock;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
@@ -57,12 +61,15 @@ public class IamGroup implements Serializable {
   private Set<IamAccount> accounts = new HashSet<>();
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name="creationtime", nullable = false)
   Date creationTime;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name="lastupdatetime", nullable = false)
   Date lastUpdateTime;
+  
+  @Column(name="default_group", nullable = false)
+  boolean defaultGroup;
 
   @ManyToOne
   @JoinColumn(name = "parent_group_id", nullable = true)
@@ -75,8 +82,22 @@ public class IamGroup implements Serializable {
   private Set<IamScopePolicy> scopePolicies = new HashSet<>();
 
   @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
-  private Set<IamGroupRequest> groupRequests;
+  private Set<IamGroupRequest> groupRequests = new HashSet<>();
+  
+  @ElementCollection
+  @CollectionTable(
+      indexes= {@Index(columnList="name"), @Index(columnList="name,val")},
+      name="iam_group_attrs",
+     joinColumns=@JoinColumn(name="group_id"))
+  private Set<IamAttribute> attributes = new HashSet<>();
 
+  @ElementCollection
+  @CollectionTable(
+      indexes= {@Index(columnList="prefix,name,val"), @Index(columnList="prefix,name")},
+      name="iam_group_labels",
+     joinColumns=@JoinColumn(name="group_id"))
+  private Set<IamLabel> labels = new HashSet<>();
+  
   public IamGroup() {
     // empty constructor
   }
@@ -170,11 +191,36 @@ public class IamGroup implements Serializable {
   public void setGroupRequests(Set<IamGroupRequest> groupRequests) {
     this.groupRequests = groupRequests;
   }
-
-  public void touch() {
-    setLastUpdateTime(new Date());
+  
+  public boolean isDefaultGroup() {
+    return defaultGroup;
   }
 
+  public void setDefaultGroup(boolean defaultGroup) {
+    this.defaultGroup = defaultGroup;
+  }
+
+  public Set<IamAttribute> getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(Set<IamAttribute> attributes) {
+    this.attributes = attributes;
+  }
+  
+  public Set<IamLabel> getLabels() {
+    return labels;
+  }
+  
+  public void setLabels(Set<IamLabel> labels) {
+    this.labels = labels;
+  }
+
+  public void touch(Clock c) {
+    setLastUpdateTime(Date.from(c.instant()));
+  }
+
+  
   @Override
   public int hashCode() {
 

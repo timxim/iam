@@ -1,6 +1,6 @@
 <%--
 
-    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 <t:page title="Sign Acceptable Usage Policy">
   <h2 class="text-center">Sign Acceptable Usage Policy</h2>
   <form id="sign-aup-form" class="sign-aup-form form" action="/iam/aup/sign" method="post">
-    <p>In order to proceed, you need to sign the Acceptable Usage Policy (AUP) for this organization:</p>
+    <p id="sign-aup-subtitle">In order to proceed, you need to sign the Acceptable Usage Policy (AUP) for this organization:</p>
     <div class="form-group">
       <div class="aup-text">${aup.text}</div>
     </div>

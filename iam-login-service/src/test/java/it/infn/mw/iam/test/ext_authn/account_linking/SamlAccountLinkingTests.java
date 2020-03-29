@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,6 +49,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.persistence.model.IamAccount;
@@ -90,7 +89,7 @@ public class SamlAccountLinkingTests extends SamlAuthenticationTestSupport {
       .getRequest()
       .getSession();
 
-    session = (MockHttpSession) mvc.perform(get(samlLoginUrl()).session(session))
+    session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()).session(session))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()
@@ -157,7 +156,7 @@ public class SamlAccountLinkingTests extends SamlAuthenticationTestSupport {
       .getRequest()
       .getSession();
 
-    session = (MockHttpSession) mvc.perform(get(samlLoginUrl()).session(session))
+    session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()).session(session))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()
@@ -220,7 +219,7 @@ public class SamlAccountLinkingTests extends SamlAuthenticationTestSupport {
       .getRequest()
       .getSession();
 
-    session = (MockHttpSession) mvc.perform(get(samlLoginUrl()).session(session))
+    session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()).session(session))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()
@@ -282,7 +281,7 @@ public class SamlAccountLinkingTests extends SamlAuthenticationTestSupport {
       .getRequest()
       .getSession();
 
-    session = (MockHttpSession) mvc.perform(get(samlLoginUrl()).session(session))
+    session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()).session(session))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()
@@ -321,7 +320,7 @@ public class SamlAccountLinkingTests extends SamlAuthenticationTestSupport {
       .perform(
           post("/iam/account-linking/SAML").param("id", "https://test.idp").with(csrf().asHeader()))
       .andExpect(status().isFound())
-      .andExpect(redirectedUrl("/saml/login?idpId=https://test.idp"))
+      .andExpect(redirectedUrl("/saml/login?idp=https://test.idp"))
       .andExpect(
           request().sessionAttribute(ACCOUNT_LINKING_SESSION_EXT_AUTHENTICATION, nullValue()))
       .andExpect(

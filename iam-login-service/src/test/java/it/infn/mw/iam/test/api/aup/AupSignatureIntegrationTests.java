@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,16 @@ package it.infn.mw.iam.test.api.aup;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
-
-import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,9 +92,10 @@ public class AupSignatureIntegrationTests extends AupTestSupport {
   public void setup() {
     mockOAuth2Filter.cleanupSecurityContext();
     mvc = MockMvcBuilders.webAppContextSetup(context)
-      .alwaysDo(print())
+      .alwaysDo(log())
       .apply(springSecurity())
       .build();
+    mockOAuth2Filter.cleanupSecurityContext();
   }
 
   @After
@@ -115,8 +116,9 @@ public class AupSignatureIntegrationTests extends AupTestSupport {
   @Test
   @WithMockUser(username = "test", roles = {"USER"})
   public void getAupSignatureWithDefaultAupReturns404() throws Exception {
-    mvc.perform(get("/iam/aup/signature")).andExpect(status().isNotFound()).andExpect(
-        jsonPath("$.error", equalTo("AUP signature not found for user 'test'")));
+    mvc.perform(get("/iam/aup/signature"))
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.error", equalTo("AUP signature not found for user 'test'")));
   }
 
   @Test
@@ -124,8 +126,9 @@ public class AupSignatureIntegrationTests extends AupTestSupport {
   public void getAupSignatureWithNoSignatureRecordReturns404() throws Exception {
     IamAup aup = buildDefaultAup();
     aupRepo.save(aup);
-    mvc.perform(get("/iam/aup/signature")).andExpect(status().isNotFound()).andExpect(
-        jsonPath("$.error", equalTo("AUP signature not found for user 'test'")));
+    mvc.perform(get("/iam/aup/signature"))
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.error", equalTo("AUP signature not found for user 'test'")));
   }
 
   @Test
@@ -187,8 +190,9 @@ public class AupSignatureIntegrationTests extends AupTestSupport {
 
     mvc.perform(post("/iam/aup/signature")).andExpect(status().isCreated());
     mvc.perform(delete("/iam/aup")).andExpect(status().isNoContent());
-    mvc.perform(get("/iam/aup/signature")).andExpect(status().isNotFound()).andExpect(
-        jsonPath("$.error", equalTo("AUP signature not found for user 'admin'")));
+    mvc.perform(get("/iam/aup/signature"))
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.error", equalTo("AUP signature not found for user 'admin'")));
 
   }
 
@@ -204,14 +208,48 @@ public class AupSignatureIntegrationTests extends AupTestSupport {
       .andExpect(status().isCreated());
 
     mvc.perform(post("/iam/aup/signature")).andExpect(status().isCreated());
-    
-    IamAccount account = accountRepo.findByUsername("admin").
-        orElseThrow(()-> new AssertionError("Expected admin account not found"));
-    
-    accountService.deleteAccount(account);
-    
-    // if we get this far, the persistence layer is working as expected
 
+    IamAccount account = accountRepo.findByUsername("admin")
+      .orElseThrow(() -> new AssertionError("Expected admin account not found"));
+
+    accountService.deleteAccount(account);
+
+    // if we get this far, the persistence layer is working as expected
   }
 
+  @Test
+  @WithMockUser(username = "test", roles = {"USER"})
+  public void normalUserCannotSeeOtherUserAup() throws Exception {
+    IamAup aup = buildDefaultAup();
+    aupRepo.save(aup);
+
+    Date now = new Date();
+
+    mockTimeProvider.setTime(now.getTime());
+    mvc.perform(post("/iam/aup/signature")).andExpect(status().isCreated());
+    mvc.perform(get("/iam/aup/signature")).andExpect(status().isOk());
+    mvc.perform(get("/iam/aup/signature/" + TEST_USER_UUID)).andExpect(status().isOk());
+    mvc.perform(get("/iam/aup/signature/" + TEST_100_USER_UUID)).andExpect(status().isForbidden());
+  }
+
+  @Test
+  public void adminUserCanSeeOtherUserAup() throws Exception {
+    IamAup aup = buildDefaultAup();
+    aupRepo.save(aup);
+
+    Date now = new Date();
+
+
+    mockTimeProvider.setTime(now.getTime());
+    mvc.perform(post("/iam/aup/signature").with(user("test").roles("USER")))
+      .andExpect(status().isCreated());
+    mvc.perform(get("/iam/aup/signature").with(user("test").roles("USER")))
+      .andExpect(status().isOk());
+    mvc.perform(get("/iam/aup/signature/" + TEST_USER_UUID).with(user("test").roles("USER")))
+      .andExpect(status().isOk());
+    mvc
+      .perform(
+          get("/iam/aup/signature/" + TEST_USER_UUID).with(user("admin").roles("USER", "ADMIN")))
+      .andExpect(status().isOk());
+  }
 }

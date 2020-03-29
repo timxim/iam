@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,14 @@ public class IamAuthority implements Serializable{
   public void setAuthority(String authority) {
 
     this.authority = authority;
+  }
+  
+  public boolean isGroupManagerAuthority() {
+    return this.authority.startsWith("ROLE_GM:");
+  }
+  
+  public String getManagedGroupId() {
+    return this.authority.substring(8);
   }
 
   @Override

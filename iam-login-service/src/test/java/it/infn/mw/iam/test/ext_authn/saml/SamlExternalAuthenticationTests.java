@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -54,8 +54,8 @@ public class SamlExternalAuthenticationTests extends SamlAuthenticationTestSuppo
   public void testSuccessfulExternalUnregisteredUserAuthentication() throws Throwable {
 
     MockHttpSession session =
-        (MockHttpSession) mvc.perform(MockMvcRequestBuilders.get(samlLoginUrl()))
-          .andExpect(MockMvcResultMatchers.status().isOk())
+        (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()))
+          .andExpect(status().isOk())
           .andReturn()
           .getRequest()
           .getSession();
@@ -76,7 +76,7 @@ public class SamlExternalAuthenticationTests extends SamlAuthenticationTestSuppo
 
     mvc.perform(get("/").session(session))
       .andExpect(status().isOk())
-      .andExpect(view().name("iam/register"));
+      .andExpect(forwardedUrl("/start-registration"));
 
     mvc.perform(get(EXT_AUTHN_URL).session(session))
       .andExpect(status().isOk())
@@ -94,7 +94,7 @@ public class SamlExternalAuthenticationTests extends SamlAuthenticationTestSuppo
   public void testExternalAuthenticationFailureRedirectsToLoginPage() throws Throwable {
 
     MockHttpSession session =
-        (MockHttpSession) mvc.perform(MockMvcRequestBuilders.get(samlLoginUrl()))
+        (MockHttpSession) mvc.perform(MockMvcRequestBuilders.get(samlDefaultIdpLoginUrl()))
           .andExpect(MockMvcResultMatchers.status().isOk())
           .andReturn()
           .getRequest()

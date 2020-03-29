@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ public class X509Utils {
 
   private X509Utils() {}
 
-  public static X509Certificate getX509CertificateFromString(String certValue)
-      throws ScimValidationException {
+  public static X509Certificate getX509CertificateFromString(String certValue) {
 
     byte[] base64decoded = null;
     try {
@@ -52,19 +51,20 @@ public class X509Utils {
     } catch (CertificateException ce) {
 
       throw new ScimValidationException(
-          "Error in conversion from String to x509 certificate: the base64 encoded string is not a valid certificate", ce);
+          "Error in conversion from String to x509 certificate: the base64 encoded string is not a valid certificate",
+          ce);
     }
 
     return cert;
   }
-  
+
   public static String getCertificateSubject(X509Certificate cert) {
-    
+
     return X500NameUtils.getReadableForm(cert.getIssuerX500Principal());
   }
-  
-public static String getCertificateSubject(String certValueAsString) {
-    
+
+  public static String getCertificateSubject(String certValueAsString) {
+
     return getCertificateSubject(getX509CertificateFromString(certValueAsString));
   }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,32 @@
  */
 package it.infn.mw.iam.core.web;
 
+import java.util.List;
 import java.util.Optional;
+
+import it.infn.mw.iam.config.IamProperties.Logo;
+import it.infn.mw.iam.config.oidc.OidcProvider;
 
 public interface LoginPageConfiguration {
 
-  boolean isGoogleEnabled();
+  boolean isOidcEnabled();
 
   boolean isGithubEnabled();
 
   boolean isSamlEnabled();
 
   boolean isRegistrationEnabled();
-  
+
   boolean isAccountLinkingEnabled();
-  
+
   Optional<String> getPrivacyPolicyUrl();
-  
+
   String getPrivacyPolicyText();
-  
+
   String getLoginButtonText();
+
+  List<OidcProvider> getOidcProviders();
   
+  Logo getLogo();
+
 }

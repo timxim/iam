@@ -1,0 +1,23 @@
+version: '2.0'
+
+services:
+  spid:
+    image:  italia/spid-testenv2:latest
+    ports:
+      - "8443:8443"
+
+    environment:
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+
+    entrypoint:
+      - /entrypoint.sh
+
+    volumes:
+      - ./assets/conf:/app/conf:rw
+      - ./assets/trust:/trust:ro
+      - ./assets/entrypoint.sh:/entrypoint.sh
+  
+    networks:
+      default:
+        aliases:
+          - spid-idp.example

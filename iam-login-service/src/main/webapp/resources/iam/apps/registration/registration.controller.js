@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ RegistrationController.$inject = ['$scope', '$q', '$window', '$cookies',
     'RegistrationRequestService', 'AuthnInfo', 'Aup'
 ];
 
-function RegistrationController($scope, $q, $window, $cookies,
-    RegistrationRequestService, AuthnInfo, Aup) {
+function RegistrationController($scope, $q, $window, $cookies, RegistrationRequestService, AuthnInfo, Aup) {
 
     var vm = this;
     var EXT_AUTHN_ROLE = 'ROLE_EXT_AUTH_UNREGISTERED';
@@ -34,7 +33,7 @@ function RegistrationController($scope, $q, $window, $cookies,
     $scope.textAlert = undefined;
     $scope.operationResult = undefined;
 
-    $scope.submitDisabled = false;
+    $scope.busy = false;
 
     vm.createRequest = createRequest;
     vm.populateRequest = populateRequest;
@@ -52,11 +51,11 @@ function RegistrationController($scope, $q, $window, $cookies,
     function activate() {
         vm.resetRequest();
         vm.populateRequest();
-        Aup.getAup().then(function(res) {
+        Aup.getAup().then(function (res) {
             if (res != null) {
                 $scope.aup = res.data.text;
             }
-        }).catch(function(res) {
+        }).catch(function (res) {
             console.error("Error getting AUP : " +
                 res.status + " " + res.statusText);
         });
@@ -68,7 +67,7 @@ function RegistrationController($scope, $q, $window, $cookies,
 
     function populateRequest() {
 
-        var success = function(res) {
+        var success = function (res) {
             var info = res.data;
             $scope.extAuthInfo = info;
             $scope.request = {
@@ -80,21 +79,21 @@ function RegistrationController($scope, $q, $window, $cookies,
             };
 
             if (info.type === 'OIDC') {
-                $scope.extAuthProviderName = 'Google';
+                $scope.extAuthProviderName = 'an OIDC identity provider';
             } else {
                 $scope.extAuthProviderName = 'a SAML identity provider';
             }
 
-            angular.forEach($scope.registrationForm.$error.required, function(field) {
+            angular.forEach($scope.registrationForm.$error.required, function (field) {
                 field.$setDirty();
             });
-        }
+        };
 
-        var error = function(err) {
+        var error = function (err) {
             $scope.operationResult = 'err';
             $scope.textAlert = err.data.error_description || err.data.detail;
-            vm.submitDisabled = false;
-        }
+            $scope.busy = false;
+        };
 
         if (userIsExternallyAuthenticated()) {
             $scope.isExternallyAuthenticated = true;
@@ -105,21 +104,21 @@ function RegistrationController($scope, $q, $window, $cookies,
     }
 
     function createRequest() {
-        var success = function(res) {
+        var success = function (res) {
             $window.location.href = "/registration/submitted";
-        }
+        };
 
-        var error = function(err) {
+        var error = function (err) {
             $scope.operationResult = 'err';
             $scope.textAlert = err.data.error_description || err.data.detail;
-            vm.submitDisabled = false;
-        }
+            $scope.busy = false;
+        };
 
         RegistrationRequestService.createRequest($scope.request).then(success, error);
     }
 
     function submit() {
-        vm.submitDisabled = true;
+        $scope.busy = true;
         vm.createRequest();
     }
 

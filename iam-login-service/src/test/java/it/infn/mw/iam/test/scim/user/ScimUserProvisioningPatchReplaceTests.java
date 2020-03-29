@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class ScimUserProvisioningPatchReplaceTests extends ScimUserTestSupport {
     ScimUser updates = ScimUser.builder().buildEmail("fakeEmail").build();
 
     scimUtils.patchUser(testUser.getId(), replace, updates, BAD_REQUEST)
-      .andExpect(jsonPath("$.detail", containsString(": not a well-formed email address")));
+      .andExpect(jsonPath("$.detail", containsString("Please provide a valid email address")));
   }
 
   @Test

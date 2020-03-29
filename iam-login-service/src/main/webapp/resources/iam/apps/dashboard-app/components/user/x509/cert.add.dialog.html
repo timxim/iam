@@ -1,0 +1,66 @@
+<!--
+
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="modal-header">
+    <h3 class="modal-title">
+        Add an X.509 certificate to <strong>{{$ctrl.user.name.formatted}}</strong> IAM account?
+    </h3>
+</div>
+
+<div class="modal-body">
+    <div class="form-group">
+        <label>User</label>
+        <p class="form-control-static">{{$ctrl.user.name.formatted}}</p>
+    </div>
+    <form name="addCert">
+        <div class="form-group" ng-class="{'has-error': 
+        addCert.label.$dirty && !addCert.label.$valid }">
+            <label>Label</label> <input name="label" class="form-control" type="text" placeholder="Label..." ng-model="$ctrl.certVal.label"
+                required="true" ng-minlength="2" ng-maxlength="36">
+            <span class="help-block" ng-if="addCert.label.$dirty && addCert.label.$error.required">
+                Please provide a label
+            </span>
+            <span class="help-block" ng-if="addCert.label.$dirty &&     addCert.label.$error.minlength">
+                Label must be at least 2 characters long
+            </span>
+            <span class="help-block" ng-if="addCert.label.$dirty && addCert.label.$error.maxlength">
+                Label must be at most 36 characters long
+            </span>
+        </div>
+
+        <div class="form-group" ng-class="{'has-error': $ctrl.error || addCert.cert.$dirty && !addCert.cert.$valid}">
+            <label>Certificate</label>
+            <textarea class="form-control" name="cert" type="text" placeholder="Insert PEM-encoded certificate here..." ng-model="$ctrl.certVal.pemEncodedCertificate"
+                required="true"></textarea>
+            <span class="help-block" ng-if="$ctrl.error">
+                {{ $ctrl.error.data.detail }}
+            </span>
+            <span class="help-block" ng-if="addCert.cert.$dirty && addCert.cert.$error.required">
+                Please paste here a PEM-encoded certificate
+            </span>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button class="btn btn-primary" type="button" id="modal-btn-confirm" ng-disabled="!$ctrl.certVal.label || !$ctrl.certVal.pemEncodedCertificate || !$ctrl.enabled"
+        ng-click="$ctrl.doAdd()">Add Certificate</button>
+
+    <button class="btn btn-warning" type="button" id="modal-btn-reset" ng-click="$ctrl.reset()">Reset form</button>
+
+    <button class="btn btn-danger" type="button" id="modal-btn-cancel" ng-click="$ctrl.cancel()">Cancel</button>
+</div>

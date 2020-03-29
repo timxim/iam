@@ -1,0 +1,12 @@
+saml:
+  nameid-policy: unspecified
+  local-metadata:
+    generated: false
+    location-url: file:///indigo-iam/iam.local.io.metadata.xml
+
+  idp-metadata:
+    -
+      metadata-url: file:///indigo-iam/spid-idp.example.metadata.xml
+      require-valid-signature: false
+      require-sirtfi: false
+      require-rs: false

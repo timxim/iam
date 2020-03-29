@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,24 @@ package it.infn.mw.iam.api.requests.service;
 import static it.infn.mw.iam.core.IamGroupRequestStatus.APPROVED;
 import static it.infn.mw.iam.core.IamGroupRequestStatus.PENDING;
 import static it.infn.mw.iam.core.IamGroupRequestStatus.REJECTED;
-import static it.infn.mw.iam.core.IamGroupRequestStatus.valueOf;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 
 import it.infn.mw.iam.api.account.AccountUtils;
@@ -113,8 +117,11 @@ public class DefaultGroupRequestsService implements GroupRequestsService {
       iamGroupRequest.setGroup(group.get());
       iamGroupRequest.setNotes(groupRequest.getNotes());
       iamGroupRequest.setStatus(PENDING);
-      iamGroupRequest.setCreationTime(new Date(timeProvider.currentTimeMillis()));
-
+      
+      Date creationTime = new Date(timeProvider.currentTimeMillis());
+      iamGroupRequest.setCreationTime(creationTime);
+      iamGroupRequest.setLastUpdateTime(creationTime);
+      
       result = groupRequestRepository.save(iamGroupRequest);
       notificationFactory.createAdminHandleGroupRequestMessage(iamGroupRequest);
       eventPublisher.publishEvent(new GroupRequestCreatedEvent(this, result));
@@ -172,21 +179,28 @@ public class DefaultGroupRequestsService implements GroupRequestsService {
     Optional<String> groupNameFilter = Optional.ofNullable(groupName);
     Optional<String> statusFilter = Optional.ofNullable(status);
 
+    Set<String> managedGroups = Collections.emptySet();
+
     if (!groupRequestUtils.isPrivilegedUser()) {
       Optional<IamAccount> userAccount = accountUtils.getAuthenticatedUserAccount();
+
       if (userAccount.isPresent()) {
-        usernameFilter = Optional.of(userAccount.get().getUsername());
+        managedGroups = groupRequestUtils.getManagedGroups();
+        if (managedGroups.isEmpty()) {
+          usernameFilter = Optional.of(userAccount.get().getUsername());
+        }
       }
     }
 
-    List<GroupRequestDto> elementList = new ArrayList<>();
+    List<GroupRequestDto> results = Lists.newArrayList();
 
-    Page<IamGroupRequest> result =
-        filterRequest(usernameFilter, groupNameFilter, statusFilter, pageRequest);
-    result.getContent().forEach(request -> elementList.add(converter.fromEntity(request)));
+    Page<IamGroupRequest> pagedResults = lookupGroupRequests(usernameFilter, groupNameFilter,
+        statusFilter, managedGroups, pageRequest);
+
+    pagedResults.getContent().forEach(request -> results.add(converter.fromEntity(request)));
 
     ListResponseDTO.Builder<GroupRequestDto> builder = ListResponseDTO.builder();
-    return builder.resources(elementList).fromPage(result, pageRequest).build();
+    return builder.resources(results).fromPage(pagedResults, pageRequest).build();
   }
 
   private IamGroupRequest updateGroupRequestStatus(IamGroupRequest request,
@@ -201,32 +215,49 @@ public class DefaultGroupRequestsService implements GroupRequestsService {
     return groupRequestRepository.save(request);
   }
 
-  private Page<IamGroupRequest> filterRequest(Optional<String> usernameFilter,
-      Optional<String> groupNameFilter, Optional<String> statusFilter, OffsetPageable pageRequest) {
+  static Specification<IamGroupRequest> baseSpec() {
+    return (req, cq, cb) -> cb.conjunction();
+  }
 
-    if (usernameFilter.isPresent() && statusFilter.isPresent()) {
-      return groupRequestRepository.findByUsernameAndStatus(usernameFilter.get(),
-          valueOf(statusFilter.get()), pageRequest);
+  static Specification<IamGroupRequest> forUser(String username) {
+    return (req, cq, cb) -> cb.equal(req.get("account").get("username"), username);
+  }
+
+  static Specification<IamGroupRequest> forGroupName(String groupName) {
+    return (req, cq, cb) -> cb.equal(req.get("group").get("name"), groupName);
+  }
+
+  static Specification<IamGroupRequest> forGroupIds(Collection<String> groupIds) {
+    return (req, cq, cb) -> req.get("group").get("uuid").in(groupIds);
+  }
+
+  static Specification<IamGroupRequest> withStatus(String status) {
+    return (req, cq, cb) -> cb.equal(req.get("status"), IamGroupRequestStatus.valueOf(status));
+  }
+
+  private Page<IamGroupRequest> lookupGroupRequests(Optional<String> usernameFilter,
+      Optional<String> groupNameFilter, Optional<String> statusFilter, Set<String> managedGroups,
+      OffsetPageable pageRequest) {
+
+    Specifications<IamGroupRequest> spec = Specifications.where(baseSpec());
+
+    if (!managedGroups.isEmpty()) {
+      spec = spec.and(forGroupIds(managedGroups));
     }
 
     if (usernameFilter.isPresent()) {
-      return groupRequestRepository.findByUsername(usernameFilter.get(), pageRequest);
-    }
-
-    if (groupNameFilter.isPresent() && statusFilter.isPresent()) {
-      return groupRequestRepository.findByGroupAndStatus(groupNameFilter.get(),
-          valueOf(statusFilter.get()), pageRequest);
+      spec = spec.and(forUser(usernameFilter.get()));
     }
 
     if (groupNameFilter.isPresent()) {
-      return groupRequestRepository.findByGroup(groupNameFilter.get(), pageRequest);
+      spec = spec.and(forGroupName(groupNameFilter.get()));
     }
 
     if (statusFilter.isPresent()) {
-      return groupRequestRepository.findByStatus(valueOf(statusFilter.get()), pageRequest);
+      spec = spec.and(withStatus(statusFilter.get()));
     }
 
-    return groupRequestRepository.findAll(pageRequest);
+    return groupRequestRepository.findAll(spec, pageRequest);
   }
 
 }

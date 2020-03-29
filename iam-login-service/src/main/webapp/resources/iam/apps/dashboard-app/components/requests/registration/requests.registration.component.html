@@ -1,0 +1,125 @@
+<!--
+
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="box box-solid no-padding no-shadow no-border" ngcloak>
+    <div class="box-body no-padding no-border">
+        <table id="vo-reqs" class="table">
+            <thead class="table-requests-head" ng-if="$ctrl.requests.length > 0">
+                <tr>
+                    <td class="table-selector">
+                        <input type="checkbox" ng-model="$ctrl.masterCheckbox"
+                            ng-change="$ctrl.toggleSelectionForPageRequests()">
+                    </td>
+                    <td class="req-approve">
+                        <div class="btn-group">
+                            <button class="btn btn-success btn-sm" ng-click="$ctrl.bulkApprove()"
+                                ng-disabled="$ctrl.busy || $ctrl.numSelected() == 0" tooltip-append-to-body="true"
+                                uib-tooltip="Approve {{ $ctrl.numSelected() }} request(s)">
+                                <i class="fa fa-check"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" ng-click="$ctrl.bulkReject()"
+                                ng-disabled="$ctrl.busy || $ctrl.numSelected() == 0" tooltip-append-to-body="true"
+                                uib-tooltip="Reject {{ $ctrl.numSelected() }} request(s)">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input placeholder="Filter requests..." ng-model="$ctrl.filter" class="form-control" />
+                        </div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-show="!$ctrl.requests.length">
+                    <td class="no-border-top" colspan="3">
+                        <div class="table-msg">
+                            No pending requests found.
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-show="$ctrl.requests.length > 0 && $ctrl.filtered.length == 0">
+                    <td colspan="3">
+                        <div class="table-msg">
+                            No requests found matching the search filter.
+                        </div>
+                    </td>
+                </tr>
+
+                <tr
+                    ng-repeat="r in $ctrl.filtered | orderBy:'creationTime':true | startFrom:($ctrl.currentPage-1)*$ctrl.itemsPerPage | limitTo:$ctrl.itemsPerPage">
+
+                    <td class="table-selector">
+                        <input type="checkbox" ng-model="$ctrl.selectedRequests[r.uuid]">
+                    </td>
+                    <td colspan="2">
+                        <div class="form-inline">
+                            <div class="form-group request-detail">
+                                <span class="text-red" ng-if="r.status == 'NEW'" uib-tooltip="User has not yet verified the ownership of
+                                    his/her email address" tooltip-append-to-body="true">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                </span>
+                                <a ui-sref="user({id: r.accountId})">
+                                    {{r.givenname}} {{r.familyname}}
+                                </a>
+                            </div>
+                            <div class="form-group pull-right">
+                                <span class="hidden-xs">{{r.creationTime | date:'MMM d, yyyy H:mm' }} (</span>
+                                <span>{{r.creationTime | relativeDate}}</span>
+                                <span class="hidden-xs">)</span>
+                            </div>
+                        </div>
+                        <div class="request-notes">
+                            {{r.notes}}
+                        </div>
+                        <div class="text-right">
+                            <a href="mailto:{{r.email}}">
+                                <i class="fa fa-envelope-o"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot ng-show="$ctrl.filtered.length > 0 && $ctrl.requests.length > $ctrl.itemsPerPage">
+                <tr>
+                    <td colspan="3" class="text-right">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <div class="page-counter">{{$ctrl.pageLeft}} - {{$ctrl.pageRight}} of
+                                    {{$ctrl.filtered.length}}</div>
+                            </div>
+                            <div class="form-group">
+                                <ul id="req_pagination_top" uib-pagination ng-model="$ctrl.currentPage"
+                                    items-per-page="$ctrl.itemsPerPage" total-items="$ctrl.filtered.length" max-size="0"
+                                    ng-change="$ctrl.pageChanged()"
+                                    template-url="/resources/iam/apps/dashboard-app/components/common/pagination.template.html">
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="overlay" ng-if="$ctrl.busy || !$ctrl.loaded">
+        <div style="text-align: center" ng-if="$ctrl.refreshing">
+            Refreshing requests...
+        </div>
+        <i class="fa fa-refresh fa-spin"></i>
+    </div>
+</div>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,11 +36,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.infn.mw.iam.audit.events.account.AccountCreatedEvent;
 import it.infn.mw.iam.audit.events.account.AccountRemovedEvent;
+import it.infn.mw.iam.audit.events.account.label.AccountLabelRemovedEvent;
+import it.infn.mw.iam.audit.events.account.label.AccountLabelSetEvent;
 import it.infn.mw.iam.core.user.exception.CredentialAlreadyBoundException;
 import it.infn.mw.iam.core.user.exception.InvalidCredentialException;
 import it.infn.mw.iam.core.user.exception.UserAlreadyExistsException;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.model.IamAuthority;
+import it.infn.mw.iam.persistence.model.IamLabel;
 import it.infn.mw.iam.persistence.model.IamOidcId;
 import it.infn.mw.iam.persistence.model.IamSamlId;
 import it.infn.mw.iam.persistence.model.IamSshKey;
@@ -69,6 +73,14 @@ public class DefaultIamAccountService implements IamAccountService {
     this.tokenService = tokenService;
   }
 
+  private void labelSetEvent(IamAccount account, IamLabel label) {
+    eventPublisher.publishEvent(new AccountLabelSetEvent(this, account, label));
+  }
+  
+  private void labelRemovedEvent(IamAccount account, IamLabel label) {
+    eventPublisher.publishEvent(new AccountLabelRemovedEvent(this, account, label));
+  }
+  
   @Override
   public IamAccount createAccount(IamAccount account) {
     checkNotNull(account, "Cannot create a null account");
@@ -277,5 +289,32 @@ public class DefaultIamAccountService implements IamAccountService {
     accounts.forEach(this::deleteAccount);
 
     return accounts;
+  }
+
+  @Override
+  public Optional<IamAccount> findByUuid(String uuid) {
+    return accountRepo.findByUuid(uuid);
+  }
+
+  @Override
+  public IamAccount setLabel(IamAccount account, IamLabel label) {
+    account.getLabels().remove(label);
+    account.getLabels().add(label);
+    
+    accountRepo.save(account);
+    
+    labelSetEvent(account, label);
+    
+    return account;
+  }
+
+  @Override
+  public IamAccount deleteLabel(IamAccount account, IamLabel label) {
+    account.getLabels().remove(label);
+    
+    accountRepo.save(account);
+    labelRemovedEvent(account, label);
+    
+    return account;
   }
 }

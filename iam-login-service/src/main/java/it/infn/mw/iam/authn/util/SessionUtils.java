@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ public class SessionUtils {
   /**
    * Get the named stored session variable as a string. Return null if not found or not a string.
    *
-   * @param session
+   * @param session the session
    *
-   * @param key
+   * @param key the key
    *
-   * @return
+   * @return the named stored session variable
    */
   public static String getStoredSessionString(HttpSession session, String key) {
 

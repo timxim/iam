@@ -12,12 +12,17 @@ INSERT INTO client_details (id, client_id, client_secret, client_name, dynamical
   (9, 'token-exchange-subject', 'secret', 'Token Exchange grant client subject', false, null, 3600, 600, true, 'SECRET_POST',false),
   (10, 'registration-client', 'secret', 'Registration service test client', false, null, 3600, 600, true, 'SECRET_POST',false),
   (11, 'token-lookup-client', 'secret', 'Token lookup client', false, null, 3600, 600, true, 'SECRET_BASIC', false);
-
+  
 INSERT INTO client_details (id, client_id, client_secret, client_name, dynamically_registered,
   refresh_token_validity_seconds, access_token_validity_seconds, id_token_validity_seconds, allow_introspection,
   token_endpoint_auth_method, require_auth_time, device_code_validity_seconds) VALUES
   (12, 'device-code-client', 'secret', 'Device code client', false, null, 3600, 600, true, 'SECRET_BASIC', false, 
    600);
+
+INSERT INTO client_details (id, client_id, client_secret, client_name, dynamically_registered,
+  refresh_token_validity_seconds, access_token_validity_seconds, id_token_validity_seconds, allow_introspection,
+  token_endpoint_auth_method, require_auth_time) VALUES
+(13, 'implicit-flow-client', null, 'Implicit Flow client', false, null, 3600, 600, false, null, false);
 
 INSERT INTO client_scope (owner_id, scope) VALUES
   (1, 'openid'),
@@ -49,6 +54,7 @@ INSERT INTO client_scope (owner_id, scope) VALUES
   (5, 'offline_access'),
   (5, 'scim:read'),
   (5, 'scim:write'),
+  (5, 'proxy:generate'),
   (6, 'openid'),
   (6, 'profile'),
   (6, 'email'),
@@ -93,8 +99,12 @@ INSERT INTO client_scope (owner_id, scope) VALUES
   (12, 'email'),
   (12, 'address'),
   (12, 'phone'),
-  (12, 'offline_access');
-  
+  (12, 'offline_access'),
+  (13, 'openid'),
+  (13, 'profile'),
+  (13, 'email'),
+  (13, 'address'),
+  (13, 'phone');
   
   
 INSERT INTO client_redirect_uri (owner_id, redirect_uri) VALUES
@@ -102,7 +112,8 @@ INSERT INTO client_redirect_uri (owner_id, redirect_uri) VALUES
   (1, 'https://iam.local.io/iam-test-client/openid_connect_login'),
   (3, 'http://localhost:4000/callback'),
   (4, 'http://localhost:5000/callback'),
-  (11, 'http://localhost:1234/callback');
+  (11, 'http://localhost:1234/callback'),
+  (13, 'http://localhost:9876/implicit');
 
 INSERT INTO client_grant_type (owner_id, grant_type) VALUES
   (1, 'authorization_code'),
@@ -128,7 +139,8 @@ INSERT INTO client_grant_type (owner_id, grant_type) VALUES
   (11, 'refresh_token'),
   (11, 'client_credentials'),
   (12, 'refresh_token'),
-  (12, 'urn:ietf:params:oauth:grant-type:device_code');
+  (12, 'urn:ietf:params:oauth:grant-type:device_code'),
+  (13, 'implicit');
     
 INSERT INTO iam_user_info(ID,GIVENNAME,FAMILYNAME, EMAIL, EMAILVERIFIED, BIRTHDATE, GENDER) VALUES
 (2, 'Test', 'User', 'test@iam.test', true, '1950-01-01','M');

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class SAMLUserDetailsServiceSupport {
         Arrays.asList(ExternalAuthenticationHandlerSupport.EXT_AUTHN_UNREGISTERED_USER_AUTH));
   }
 
-  protected IamSamlId resolverSamlId(SAMLCredential credential) {
+  protected IamSamlId resolveSamlId(SAMLCredential credential) {
     return resolver.resolveSamlUserIdentifier(credential).getResolvedId()
       .orElseThrow(() -> new UsernameNotFoundException(
           "Could not extract a user identifier from the SAML assertion"));

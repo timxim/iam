@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,9 @@ public class IamNotificationReceiver implements Serializable {
   @Column(name = "email_address", length = 254)
   private String emailAddress;
 
-  public IamNotificationReceiver() {}
+  public IamNotificationReceiver() {
+    // empty on purpose
+  }
 
   public Long getId() {
     return id;
@@ -97,6 +99,13 @@ public class IamNotificationReceiver implements Serializable {
       return false;
     }
     return true;
+  }
+
+  public static IamNotificationReceiver forAddress(IamEmailNotification n, String emailAddress) {
+    IamNotificationReceiver r = new IamNotificationReceiver();
+    r.setEmailAddress(emailAddress);
+    r.setIamEmailNotification(n);
+    return r;
   }
 
   @Override

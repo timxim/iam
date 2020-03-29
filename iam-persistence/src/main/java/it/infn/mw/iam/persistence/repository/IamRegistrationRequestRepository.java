@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public interface IamRegistrationRequestRepository
 
   Optional<IamRegistrationRequest> findByUuid(@Param("uuid") String uuid);
 
-  @Query("select r from IamRegistrationRequest r join r.account a where a.confirmationKey = :confirmationKey")
+  @Query("select r from IamRegistrationRequest r join r.account a where a.confirmationKey = :confirmationKey and r.status = it.infn.mw.iam.core.IamRegistrationRequestStatus.NEW")
   Optional<IamRegistrationRequest> findByAccountConfirmationKey(
       @Param("confirmationKey") String confirmationKey);
 

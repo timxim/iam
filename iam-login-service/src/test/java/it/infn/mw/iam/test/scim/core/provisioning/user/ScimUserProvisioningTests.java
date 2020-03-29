@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,9 @@ import it.infn.mw.iam.api.scim.model.ScimSshKey;
 import it.infn.mw.iam.api.scim.model.ScimUser;
 import it.infn.mw.iam.api.scim.provisioning.ScimUserProvisioning;
 import it.infn.mw.iam.persistence.model.IamAccount;
+import it.infn.mw.iam.persistence.model.IamOidcId;
+import it.infn.mw.iam.persistence.model.IamSamlId;
+import it.infn.mw.iam.persistence.model.IamSshKey;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
 import it.infn.mw.iam.test.SshKeyUtils;
 
@@ -105,17 +108,23 @@ public class ScimUserProvisioningTests {
 
     assertThat(iamAccount.getUserInfo().getEmail(), equalTo(TESTUSER_EMAIL.getValue()));
 
-    assertThat(iamAccount.getOidcIds().get(0).getIssuer(), equalTo(TESTUSER_OIDCID.getIssuer()));
-    assertThat(iamAccount.getOidcIds().get(0).getSubject(), equalTo(TESTUSER_OIDCID.getSubject()));
+    
+    IamOidcId oidcId = iamAccount.getOidcIds().iterator().next();
+    assertThat(oidcId.getIssuer(), equalTo(TESTUSER_OIDCID.getIssuer()));
+    assertThat(oidcId.getSubject(), equalTo(TESTUSER_OIDCID.getSubject()));
 
-    assertThat(iamAccount.getSamlIds().get(0).getIdpId(), equalTo(TESTUSER_SAMLID.getIdpId()));
-    assertThat(iamAccount.getSamlIds().get(0).getUserId(), equalTo(TESTUSER_SAMLID.getUserId()));
+    IamSamlId samlId = iamAccount.getSamlIds().iterator().next();
+    
+    assertThat(samlId.getIdpId(), equalTo(TESTUSER_SAMLID.getIdpId()));
+    assertThat(samlId.getUserId(), equalTo(TESTUSER_SAMLID.getUserId()));
 
-    assertThat(iamAccount.getSshKeys().get(0).getLabel(), equalTo(TESTUSER_SSHKEY.getDisplay()));
-    assertThat(iamAccount.getSshKeys().get(0).getFingerprint(),
+    IamSshKey sshKey = iamAccount.getSshKeys().iterator().next();
+    
+    assertThat(sshKey.getLabel(), equalTo(TESTUSER_SSHKEY.getDisplay()));
+    assertThat(sshKey.getFingerprint(),
         equalTo(SshKeyUtils.sshKeys.get(0).fingerprintSHA256));
-    assertThat(iamAccount.getSshKeys().get(0).getValue(), equalTo(TESTUSER_SSHKEY.getValue()));
-    assertThat(iamAccount.getSshKeys().get(0).isPrimary(), equalTo(TESTUSER_SSHKEY.isPrimary()));
+    assertThat(sshKey.getValue(), equalTo(TESTUSER_SSHKEY.getValue()));
+    assertThat(sshKey.isPrimary(), equalTo(TESTUSER_SSHKEY.isPrimary()));
 
     userService.delete(iamAccount.getUuid());
   }

@@ -87,14 +87,18 @@ function getAccountLinkingEnabled() {
 }
 
 function getOrganisationName() {
- return '${iamProperties.organisationName}'; 
+ return '${iamOrganisationName}'; 
 }
 
-function getGoogleEnabled() {
-  return ${loginPageConfiguration.googleEnabled};
+function getOidcEnabled() {
+  return ${loginPageConfiguration.oidcEnabled};
 }
 	
 function getSamlEnabled() {
   return ${loginPageConfiguration.samlEnabled};
+}
+
+function getRcauthEnabled() {
+  return ${iamRcauthEnabled};
 }
 </script>

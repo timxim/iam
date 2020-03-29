@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package it.infn.mw.iam.api.authn_info;
 
-import static it.infn.mw.iam.authn.ExternalAuthenticationSuccessHandler.EXT_AUTHN_UNREGISTERED_USER_ROLE;
+import static it.infn.mw.iam.authn.ExternalAuthenticationHandlerSupport.EXT_AUTHN_UNREGISTERED_USER_ROLE;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.infn.mw.iam.authn.AbstractExternalAuthenticationToken;
@@ -30,7 +31,7 @@ public class AuthnInfoController {
 
   public static final String BASE_RESOURCE = "/iam/authn-info";
 
-  @RequestMapping(BASE_RESOURCE)
+  @RequestMapping(value=BASE_RESOURCE, method=RequestMethod.GET)
   @PreAuthorize("hasRole('" + EXT_AUTHN_UNREGISTERED_USER_ROLE + "')")
   public ExternalAuthenticationRegistrationInfo getAuthenticationInfo() {
 

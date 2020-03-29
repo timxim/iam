@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 package it.infn.mw.iam.api.common;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PagedResourceService<T> {
 
-  Page<T> getPage(OffsetPageable op);
+  Page<T> getPage(Pageable op);
 
   long count();
 
-  Page<T> getPage(OffsetPageable op, String filter);
+  Page<T> getPage(Pageable op, String filter);
 
   long count(String filter);
 

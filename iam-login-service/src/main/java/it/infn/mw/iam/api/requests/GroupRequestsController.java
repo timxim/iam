@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import javax.validation.Valid;
 
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -47,26 +48,29 @@ public class GroupRequestsController {
   private GroupRequestsService groupRequestService;
 
   @RequestMapping(method = RequestMethod.POST, value = {"", "/"})
-  @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
   public GroupRequestDto createGroupRequest(@RequestBody @Valid GroupRequestDto groupRequest) {
     return groupRequestService.createGroupRequest(groupRequest);
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+  @RequestMapping(method = RequestMethod.GET, value = {"", "/"})
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ListResponseDTO<GroupRequestDto> listGroupRequest(
       @RequestParam(required = false) String username,
       @RequestParam(required = false) String groupName,
       @RequestParam(required = false) String status, @RequestParam(required = false) Integer count,
       @RequestParam(required = false) Integer startIndex) {
 
+    final Sort sort = new Sort("account.username", "group.name","creationTime");
+    
     OffsetPageable pageRequest =
-        PagingUtils.buildPageRequest(count, startIndex, GROUP_REQUEST_MAX_PAGE_SIZE);
+        PagingUtils.buildPageRequest(count, startIndex, GROUP_REQUEST_MAX_PAGE_SIZE, sort);
+    
     return groupRequestService.listGroupRequests(username, groupName, status, pageRequest);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{requestId}")
-  @PreAuthorize("hasRole('ADMIN') or #iam.userOwnsGroupRequest(#requestId)")
+  @PreAuthorize("hasRole('ADMIN') or #iam.canAccessGroupRequest(#requestId)")
   public GroupRequestDto getGroupRequestDetails(
       @Valid @PathVariable("requestId") String requestId) {
     return groupRequestService.getGroupRequestDetails(requestId);
@@ -80,14 +84,14 @@ public class GroupRequestsController {
   }
 
   @RequestMapping(method = RequestMethod.POST, value = "/{requestId}/approve")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN') or #iam.canManageGroupRequest(#requestId)")
   @ResponseStatus(HttpStatus.OK)
   public GroupRequestDto approveGroupRequest(@Valid @PathVariable("requestId") String requestId) {
     return groupRequestService.approveGroupRequest(requestId);
   }
 
   @RequestMapping(method = RequestMethod.POST, value = "/{requestId}/reject")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN') or #iam.canManageGroupRequest(#requestId)")
   @ResponseStatus(HttpStatus.OK)
   public GroupRequestDto rejectGroupRequest(@Valid @PathVariable("requestId") String requestId,
       @RequestParam @NotEmpty String motivation) {

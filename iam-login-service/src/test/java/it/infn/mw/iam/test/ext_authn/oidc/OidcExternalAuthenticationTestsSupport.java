@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,46 +45,46 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import it.infn.mw.iam.authn.oidc.RestTemplateFactory;
-import it.infn.mw.iam.test.util.oidc.CodeRequestUtil;
+import it.infn.mw.iam.test.util.oidc.CodeRequestHolder;
 import it.infn.mw.iam.test.util.oidc.MockOIDCProvider;
 import it.infn.mw.iam.test.util.oidc.MockRestTemplateFactory;
 
 public class OidcExternalAuthenticationTestsSupport {
 
   @Value("${local.server.port}")
-  Integer iamPort;
+  protected Integer iamPort;
 
   @Autowired
-  RestTemplateFactory restTemplateFactory;
+  protected RestTemplateFactory restTemplateFactory;
 
   @Autowired
-  MockOIDCProvider mockOidcProvider;
+  protected MockOIDCProvider mockOidcProvider;
 
   @Autowired
-  UserInfoFetcher mockUserInfoFetcher;
+  protected UserInfoFetcher mockUserInfoFetcher;
 
 
-  String baseIamURL() {
+  protected String baseIamURL() {
     return "http://localhost:" + iamPort;
   }
 
-  String openidConnectLoginURL() {
+  protected String openidConnectLoginURL() {
     return baseIamURL() + "/openid_connect_login";
   }
 
-  String authnInfoURL() {
+  protected String authnInfoURL() {
     return baseIamURL() + "/iam/authn-info";
   }
 
-  String landingPageURL() {
+  protected String landingPageURL() {
     return baseIamURL() + "/dashboard";
   }
 
-  String loginPageURL() {
+  protected String loginPageURL() {
     return baseIamURL() + "/login";
   }
 
-  ClientHttpRequestFactory noRedirectHttpRequestFactory() {
+  protected ClientHttpRequestFactory noRedirectHttpRequestFactory() {
 
     SimpleClientHttpRequestFactory rf = new SimpleClientHttpRequestFactory() {
       protected void prepareConnection(java.net.HttpURLConnection connection, String httpMethod)
@@ -97,11 +97,11 @@ public class OidcExternalAuthenticationTestsSupport {
     return rf;
   }
 
-  RestTemplate noRedirectRestTemplate() {
+  protected RestTemplate noRedirectRestTemplate() {
     return new RestTemplate(noRedirectHttpRequestFactory());
   }
 
-  void checkAuthorizationEndpointRedirect(ResponseEntity<String> response) {
+  protected void checkAuthorizationEndpointRedirect(ResponseEntity<String> response) {
     assertThat(response.getStatusCode(), equalTo(HttpStatus.FOUND));
     assertNotNull(response.getHeaders().getLocation());
 
@@ -117,15 +117,15 @@ public class OidcExternalAuthenticationTestsSupport {
 
   }
 
-  String extractSessionCookie(ResponseEntity<String> response) {
+  protected String extractSessionCookie(ResponseEntity<String> response) {
 
     return response.getHeaders().get("Set-Cookie").get(0);
 
   }
 
-  CodeRequestUtil buildCodeRequest(String sessionCookie, ResponseEntity<String> response) {
+  protected CodeRequestHolder buildCodeRequest(String sessionCookie, ResponseEntity<String> response) {
 
-    CodeRequestUtil result = new CodeRequestUtil();
+    CodeRequestHolder result = new CodeRequestHolder();
 
     HttpHeaders requestHeaders = new HttpHeaders();
     UriComponents locationUri =
@@ -150,7 +150,7 @@ public class OidcExternalAuthenticationTestsSupport {
     return result;
   }
 
-  void prepareSuccessResponse(String tokenResponse) {
+  protected void prepareSuccessResponse(String tokenResponse) {
     MockRestTemplateFactory tf = (MockRestTemplateFactory) restTemplateFactory;
     tf.getMockServer()
       .expect(requestTo(TEST_OIDC_TOKEN_ENDPOINT_URI))
@@ -159,7 +159,7 @@ public class OidcExternalAuthenticationTestsSupport {
       .andRespond(MockRestResponseCreators.withSuccess(tokenResponse, MediaType.APPLICATION_JSON));
   }
 
-  void prepareErrorResponse(String errorResponse) {
+  protected void prepareErrorResponse(String errorResponse) {
     MockRestTemplateFactory tf = (MockRestTemplateFactory) restTemplateFactory;
     tf.getMockServer()
       .expect(requestTo(TEST_OIDC_TOKEN_ENDPOINT_URI))
@@ -170,7 +170,7 @@ public class OidcExternalAuthenticationTestsSupport {
         .body(errorResponse));
   }
 
-  void verifyMockServerCalls() {
+  protected void verifyMockServerCalls() {
     MockRestTemplateFactory tf = (MockRestTemplateFactory) restTemplateFactory;
     tf.getMockServer().verify();
     tf.resetTemplate();

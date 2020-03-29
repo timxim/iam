@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -93,7 +93,7 @@ public class AupIntegrationTests extends AupTestSupport {
   @Before
   public void setup() {
     mvc = MockMvcBuilders.webAppContextSetup(context)
-      .alwaysDo(print())
+      .alwaysDo(log())
       .apply(springSecurity())
       .build();
     mockOAuth2Filter.cleanupSecurityContext();
@@ -144,7 +144,6 @@ public class AupIntegrationTests extends AupTestSupport {
           post("/iam/aup").contentType(APPLICATION_JSON).content(mapper.writeValueAsString(aup)))
       .andExpect(status().isForbidden())
       .andExpect(jsonPath("$.error", equalTo("Access is denied")));
-
   }
 
   @Test
@@ -320,8 +319,7 @@ public class AupIntegrationTests extends AupTestSupport {
       .andExpect(jsonPath("$.error", equalTo("Invalid AUP: the AUP text cannot be blank")));
 
   }
-
-
+  
   @Test
   @WithMockUser(username = "admin", roles = {"ADMIN", "USER"})
   public void aupUpdateWorks() throws JsonProcessingException, Exception {

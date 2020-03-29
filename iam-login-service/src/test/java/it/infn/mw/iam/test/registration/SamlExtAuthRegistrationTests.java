@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class SamlExtAuthRegistrationTests extends SamlAuthenticationTestSupport 
 
     // If the user tries to authenticate with his external account, he's redirected to the
     // login page with an account disabled error
-    MockHttpSession session = (MockHttpSession) mvc.perform(get(samlLoginUrl()))
+    MockHttpSession session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()
@@ -121,7 +121,7 @@ public class SamlExtAuthRegistrationTests extends SamlAuthenticationTestSupport 
     // the same happens after having confirmed the request
     mvc.perform(get("/registration/confirm/{token}", token)).andExpect(status().isOk());
 
-    session = (MockHttpSession) mvc.perform(get(samlLoginUrl()))
+    session = (MockHttpSession) mvc.perform(get(samlDefaultIdpLoginUrl()))
       .andExpect(status().isOk())
       .andReturn()
       .getRequest()

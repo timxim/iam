@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package it.infn.mw.iam.api.account.search.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import it.infn.mw.iam.api.common.OffsetPageable;
 import it.infn.mw.iam.api.common.PagedResourceService;
 import it.infn.mw.iam.persistence.model.IamGroup;
 import it.infn.mw.iam.persistence.repository.IamGroupRepository;
@@ -30,7 +30,7 @@ public class DefaultPagedGroupsService implements PagedResourceService<IamGroup>
   private IamGroupRepository groupRepository;
 
   @Override
-  public Page<IamGroup> getPage(OffsetPageable op) {
+  public Page<IamGroup> getPage(Pageable op) {
     return groupRepository.findAll(op);
   }
 
@@ -40,17 +40,15 @@ public class DefaultPagedGroupsService implements PagedResourceService<IamGroup>
   }
 
   @Override
-  public Page<IamGroup> getPage(OffsetPageable op, String filter) {
+  public Page<IamGroup> getPage(Pageable op, String filter) {
 
-    filter = String.format("%%%s%%", filter);
-    return groupRepository.findByFilter(filter, op);
+    return groupRepository.findByNameIgnoreCaseContainingOrUuidIgnoreCaseContaining(filter, filter, op);
   }
 
   @Override
   public long count(String filter) {
 
-    filter = String.format("%%%s%%", filter);
-    return groupRepository.countByFilter(filter);
+    return groupRepository.countByNameIgnoreCaseContainingOrUuidIgnoreCaseContaining(filter, filter);
   }
 
 }

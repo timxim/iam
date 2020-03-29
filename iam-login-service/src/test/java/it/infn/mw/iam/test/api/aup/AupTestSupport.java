@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package it.infn.mw.iam.test.api.aup;
 import java.util.Date;
 
 import it.infn.mw.iam.persistence.model.IamAup;
+import it.infn.mw.iam.test.api.TestSupport;
 
-public class AupTestSupport {
+public class AupTestSupport extends TestSupport{
   
   public static final String DEFAULT_AUP_NAME = "default-aup";
   public static final String DEFAULT_AUP_TEXT = "default-aup-text";

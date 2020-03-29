@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,9 @@ public class IamEmailNotification implements Serializable{
   @Column(name = "last_update", nullable = true)
   private Date lastUpdate;
 
-  public IamEmailNotification() {}
+  public IamEmailNotification() {
+    // empty on purpose
+  }
 
   public Long getId() {
     return id;

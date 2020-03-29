@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package it.infn.mw.iam.registration;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import it.infn.mw.iam.api.common.LabelDTO;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RegistrationRequestDto {
@@ -37,6 +40,8 @@ public class RegistrationRequestDto {
   private String accountId;
   private String notes;
 
+  private List<LabelDTO> labels;
+
   public RegistrationRequestDto() {}
 
   @JsonCreator
@@ -46,7 +51,8 @@ public class RegistrationRequestDto {
       @JsonProperty("username") String username, @JsonProperty("password") String password,
       @JsonProperty("givename") String givenname, @JsonProperty("familyname") String familyname,
       @JsonProperty("email") String email, @JsonProperty("birthdate") String birthdate,
-      @JsonProperty("accountid") String accountId, @JsonProperty("notes") String notes) {
+      @JsonProperty("accountid") String accountId, @JsonProperty("notes") String notes,
+      @JsonProperty("labels") List<LabelDTO> labels) {
 
     this.username = username;
     this.password = password;
@@ -60,6 +66,7 @@ public class RegistrationRequestDto {
     this.lastUpdateTime = lastUpdateTime;
     this.accountId = accountId;
     this.notes = notes;
+    this.labels = labels;
   }
 
   public String getUuid() {
@@ -180,4 +187,11 @@ public class RegistrationRequestDto {
     this.notes = notes;
   }
 
+  public List<LabelDTO> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(List<LabelDTO> labels) {
+    this.labels = labels;
+  }
 }

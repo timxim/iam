@@ -50,6 +50,7 @@ public class IamUserInfoFetcher extends UserInfoFetcher {
     try {
       return cache.get(token);
     } catch (ExecutionException e) {
+      logger.debug(e.getMessage());
       return null;
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package it.infn.mw.iam.notification;
 
+import static it.infn.mw.iam.notification.NotificationProperties.AdminNotificationPolicy.NOTIFY_ADDRESS;
+import static it.infn.mw.iam.notification.NotificationProperties.GroupManagerNotificationPolicy.NOTIFY_GMS_AND_ADMINS;
+
 import java.util.Map;
 
 import org.hibernate.validator.constraints.NotBlank;
@@ -24,6 +27,17 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "notification")
 public class NotificationProperties {
+
+  public enum AdminNotificationPolicy {
+    NOTIFY_ADDRESS,
+    NOTIFY_ADMINS,
+    NOTIFY_ADDRESS_AND_ADMINS
+  }
+
+  public enum GroupManagerNotificationPolicy {
+    NOTIFY_GMS,
+    NOTIFY_GMS_AND_ADMINS
+  }
 
   private Boolean disable;
 
@@ -37,6 +51,11 @@ public class NotificationProperties {
   private String adminAddress;
 
   private Map<String, String> subject;
+
+  private AdminNotificationPolicy adminNotificationPolicy = NOTIFY_ADDRESS;
+
+  private GroupManagerNotificationPolicy groupManagerNotificationPolicy =
+      NOTIFY_GMS_AND_ADMINS;
 
   public Boolean getDisable() {
     return disable;
@@ -86,4 +105,20 @@ public class NotificationProperties {
     this.subject = subject;
   }
 
+  public AdminNotificationPolicy getAdminNotificationPolicy() {
+    return adminNotificationPolicy;
+  }
+
+  public void setAdminNotificationPolicy(AdminNotificationPolicy adminNotificationPolicy) {
+    this.adminNotificationPolicy = adminNotificationPolicy;
+  }
+
+  public GroupManagerNotificationPolicy getGroupManagerNotificationPolicy() {
+    return groupManagerNotificationPolicy;
+  }
+
+  public void setGroupManagerNotificationPolicy(
+      GroupManagerNotificationPolicy groupManagerNotificationPolicy) {
+    this.groupManagerNotificationPolicy = groupManagerNotificationPolicy;
+  }
 }

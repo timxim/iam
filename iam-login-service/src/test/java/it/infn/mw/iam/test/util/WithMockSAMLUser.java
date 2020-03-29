@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,12 @@ public @interface WithMockSAMLUser {
   String eppn() default "test-saml-user@" + DEFAULT_IDP_ID;
 
   String[] authorities() default {EXT_AUTHN_UNREGISTERED_USER_ROLE};
+  
+  String cernPersonId() default "";
+  String cernEmail() default "";
+  String cernFirstName() default "";
+  String cerLastName() default "";
+  String cernHomeInstitute() default "";
 
   long expirationTime() default -1;
 }

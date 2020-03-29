@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,18 @@
  */
 package it.infn.mw.iam.api.scim.converter;
 
-import org.mitre.openid.connect.model.Address;
-import org.mitre.openid.connect.model.DefaultAddress;
 import org.springframework.stereotype.Service;
 
 import it.infn.mw.iam.api.scim.model.ScimAddress;
+import it.infn.mw.iam.persistence.model.IamAddress;
 
 @Service
-public class AddressConverter implements Converter<ScimAddress, Address> {
+public class AddressConverter implements Converter<ScimAddress, IamAddress> {
 
   @Override
-  public Address entityFromDto(ScimAddress scim) {
+  public IamAddress entityFromDto(ScimAddress scim) {
 
-    Address address = new DefaultAddress();
+    IamAddress address = new IamAddress();
 
     address.setCountry(scim.getCountry());
     address.setFormatted(scim.getFormatted());
@@ -41,7 +40,7 @@ public class AddressConverter implements Converter<ScimAddress, Address> {
   }
 
   @Override
-  public ScimAddress dtoFromEntity(Address entity) {
+  public ScimAddress dtoFromEntity(IamAddress entity) {
 
     return ScimAddress.builder()
       .country(entity.getCountry())

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import it.infn.mw.iam.core.IamDeliveryStatus;
 import it.infn.mw.iam.core.time.TimeProvider;
-import it.infn.mw.iam.notification.JavaMailNotificationDelivery;
 import it.infn.mw.iam.notification.NotificationProperties;
+import it.infn.mw.iam.notification.service.JavaMailNotificationDelivery;
 import it.infn.mw.iam.persistence.model.IamEmailNotification;
 import it.infn.mw.iam.persistence.model.IamNotificationReceiver;
 import it.infn.mw.iam.persistence.repository.IamEmailNotificationRepository;

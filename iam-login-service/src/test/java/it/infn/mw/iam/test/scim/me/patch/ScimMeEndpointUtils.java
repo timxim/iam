@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import it.infn.mw.iam.api.scim.model.ScimX509Certificate;
 public class ScimMeEndpointUtils {
 
   protected final ScimName TESTUSER_NEWNAME =
-      ScimName.builder().givenName("A").familyName("B").build();
+      ScimName.builder().givenName("AAA").familyName("BBB").build();
 
   protected final ScimPhoto TESTUSER_NEWPHOTO =
       ScimPhoto.builder().value("http://fakesite.org/user.png").build();

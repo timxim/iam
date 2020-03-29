@@ -1,6 +1,7 @@
 package it.infn.mw.tc;
 
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -29,7 +30,6 @@ import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsServ
 import org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService;
 import org.mitre.openid.connect.client.service.impl.StaticSingleIssuerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,13 +47,7 @@ public class IamClient {
 
   @Autowired
   private IamClientConfig iamClientConfig;
-  
-  @Value("${iam.tls.version}")
-  private String tlsVersion;
-  
-  @Value("${iam.tls.ignoreNamespaceChecks}")
-  private boolean ignoreNamespaceChecks;
-  
+
   @Bean
   public FilterRegistrationBean disabledAutomaticOidcFilterRegistration(
       OIDCAuthenticationFilter f) {
@@ -63,7 +57,8 @@ public class IamClient {
   }
 
   @Bean(name = "openIdConnectAuthenticationFilter")
-  public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() {
+  public OIDCAuthenticationFilter openIdConnectAuthenticationFilter()
+      throws NoSuchAlgorithmException, KeyStoreException {
 
     ClientHttpRequestFactory rf = httpRequestFactory();
     IamOIDCClientFilter filter = new IamOIDCClientFilter();
@@ -88,13 +83,15 @@ public class IamClient {
   }
 
   @Bean(name = "OIDCAuthenticationManager")
-  public AuthenticationManager authenticationManager() {
+  public AuthenticationManager authenticationManager()
+      throws NoSuchAlgorithmException, KeyStoreException {
 
     return new ProviderManager(Arrays.asList(openIdConnectAuthenticationProvider()));
   }
 
   @Bean
-  public OIDCAuthenticationProvider openIdConnectAuthenticationProvider() {
+  public OIDCAuthenticationProvider openIdConnectAuthenticationProvider()
+      throws NoSuchAlgorithmException {
 
     OIDCAuthenticationProvider provider = new OIDCAuthenticationProvider();
     provider.setUserInfoFetcher(new IamUserInfoFetcher(httpRequestFactory()));
@@ -130,27 +127,27 @@ public class IamClient {
   @Bean
   public X509CertChainValidatorExt certificateValidator() {
     NamespaceCheckingMode namespaceChecks = CertificateValidatorBuilder.DEFAULT_NS_CHECKS;
-    
-    if (ignoreNamespaceChecks) {
+
+    if (iamClientConfig.getTls().isIgnoreNamespaceChecks()) {
       namespaceChecks = NamespaceCheckingMode.IGNORE;
     }
-    
-    return new CertificateValidatorBuilder()
-        .lazyAnchorsLoading(false)
-        .namespaceChecks(namespaceChecks)
-        .build();
+
+    return new CertificateValidatorBuilder().lazyAnchorsLoading(false)
+      .namespaceChecks(namespaceChecks)
+      .build();
   }
 
-  
- 
+
+
   @Bean
-  public SSLContext sslContext() {
+  public SSLContext sslContext() throws NoSuchAlgorithmException {
+
+    SecureRandom r = new SecureRandom();
 
     try {
-      SSLContext context = SSLContext.getInstance(tlsVersion);
+      SSLContext context = SSLContext.getInstance(iamClientConfig.getTls().getVersion());
 
       X509TrustManager tm = SocketFactoryCreator.getSSLTrustManager(certificateValidator());
-      SecureRandom r = new SecureRandom();
       context.init(null, new TrustManager[] {tm}, r);
 
       return context;
@@ -162,27 +159,36 @@ public class IamClient {
   }
 
   @Bean
-  public HttpClient httpClient() {
+  public HttpClient httpClient() throws NoSuchAlgorithmException {
 
     SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(sslContext());
 
     Registry<ConnectionSocketFactory> socketFactoryRegistry =
-        RegistryBuilder.<ConnectionSocketFactory>create().register("https", sf)
-            .register("http", PlainConnectionSocketFactory.getSocketFactory()).build();
+        RegistryBuilder.<ConnectionSocketFactory>create()
+          .register("https", sf)
+          .register("http", PlainConnectionSocketFactory.getSocketFactory())
+          .build();
 
     PoolingHttpClientConnectionManager connectionManager =
         new PoolingHttpClientConnectionManager(socketFactoryRegistry);
     connectionManager.setMaxTotal(10);
     connectionManager.setDefaultMaxPerRoute(10);
 
-    return HttpClientBuilder.create().setConnectionManager(connectionManager).disableAuthCaching()
-        .build();
+    return HttpClientBuilder.create()
+      .setConnectionManager(connectionManager)
+      .disableAuthCaching()
+      .build();
   }
 
   @Bean
-  public ClientHttpRequestFactory httpRequestFactory() {
+  public ClientHttpRequestFactory httpRequestFactory() throws NoSuchAlgorithmException {
 
-    return new HttpComponentsClientHttpRequestFactory(httpClient());
+    if (iamClientConfig.getTls().isUseGridTrustAnchors()) {
+      return new HttpComponentsClientHttpRequestFactory(httpClient());
+    } else {
+      return new HttpComponentsClientHttpRequestFactory();
+    }
+
   }
 
 

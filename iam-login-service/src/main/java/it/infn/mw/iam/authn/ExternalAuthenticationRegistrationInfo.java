@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package it.infn.mw.iam.authn;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,6 +46,8 @@ public class ExternalAuthenticationRegistrationInfo implements Serializable {
   
   private String suggestedUsername;
 
+  private Map<String, String> additionalAttributes;
+  
   public ExternalAuthenticationRegistrationInfo(ExternalAuthenticationType type) {
     this.type = type;
   }
@@ -131,5 +134,13 @@ public class ExternalAuthenticationRegistrationInfo implements Serializable {
     this.suggestedUsername = suggestedUsername;
   }
   
+  @JsonProperty("additional_attributes")
+  public Map<String, String> getAdditionalAttributes() {
+    return additionalAttributes;
+  }
+  
+  public void setAdditionalAttributes(Map<String, String> additionalAttributes) {
+    this.additionalAttributes = additionalAttributes;
+  }
   
 }

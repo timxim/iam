@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,40 @@
  */
 package it.infn.mw.iam.api.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import javax.annotation.Generated;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import com.google.common.base.Preconditions;
 
 public class OffsetPageable implements Pageable {
 
   private final int offset;
   private final int count;
+  private final Sort sort;
+
+  public OffsetPageable(int count) {
+
+    this(0, count, null);
+  }
+
+  public OffsetPageable(int count, Sort sort) {
+
+    this(0, count, sort);
+  }
 
   public OffsetPageable(int offset, int count) {
 
-    Preconditions.checkArgument(offset >= 0, "offset must be greater or equal to 0");
-    Preconditions.checkArgument(count >= 1, "count must be a positive integer");
+    this(offset, count, null);
+  }
+
+  public OffsetPageable(int offset, int count, Sort sort) {
+
+    checkArgument(offset >= 0, "offset must be greater or equal to 0");
+    checkArgument(count >= 1, "count must be a positive integer");
 
     this.offset = offset;
     this.count = count;
+    this.sort = sort;
   }
 
   @Override
@@ -55,13 +72,13 @@ public class OffsetPageable implements Pageable {
   @Override
   public Sort getSort() {
 
-    return null;
+    return sort;
   }
 
   @Override
   public Pageable next() {
 
-    return new OffsetPageable(offset + count, count);
+    return new OffsetPageable(offset + count, count, sort);
   }
 
   @Override
@@ -72,14 +89,14 @@ public class OffsetPageable implements Pageable {
       newOffset = 0;
     }
 
-    return new OffsetPageable(newOffset, count);
+    return new OffsetPageable(newOffset, count, sort);
 
   }
 
   @Override
   public Pageable first() {
 
-    return new OffsetPageable(0, count);
+    return new OffsetPageable(0, count, sort);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,11 @@ import com.google.common.collect.Sets;
 
 import it.infn.mw.iam.authn.InactiveAccountAuthenticationHander;
 import it.infn.mw.iam.authn.saml.JustInTimeProvisioningSAMLUserDetailsService;
+import it.infn.mw.iam.authn.saml.MappingPropertiesResolver;
 import it.infn.mw.iam.authn.saml.util.Saml2Attribute;
 import it.infn.mw.iam.authn.saml.util.SamlUserIdentifierResolutionResult;
 import it.infn.mw.iam.authn.saml.util.SamlUserIdentifierResolver;
+import it.infn.mw.iam.config.saml.IamSamlJITAccountProvisioningProperties.AttributeMappingProperties;
 import it.infn.mw.iam.core.user.IamAccountService;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
@@ -67,6 +69,9 @@ public class JitUserDetailServiceTests extends JitUserDetailsServiceTestsSupport
 
   @Mock
   private InactiveAccountAuthenticationHander inactiveAccountHander;
+  
+  @Mock
+  private MappingPropertiesResolver mpResolver;
 
   private JustInTimeProvisioningSAMLUserDetailsService userDetailsService;
 
@@ -88,8 +93,12 @@ public class JitUserDetailServiceTests extends JitUserDetailsServiceTestsSupport
     when(resolver.resolveSamlUserIdentifier(anyObject()))
       .thenReturn(SamlUserIdentifierResolutionResult.resolutionFailure("No suitable user id found"));
 
+    AttributeMappingProperties defaultMappingProps = new AttributeMappingProperties();
+    
+    when(mpResolver.resolveMappingProperties(anyString())).thenReturn(defaultMappingProps);
+    
     userDetailsService = new JustInTimeProvisioningSAMLUserDetailsService(resolver, accountService,
-        inactiveAccountHander, accountRepo, Optional.empty());
+        inactiveAccountHander, accountRepo, Optional.empty(), mpResolver);
   }
 
   @Test(expected = NullPointerException.class)
@@ -188,7 +197,7 @@ public class JitUserDetailServiceTests extends JitUserDetailsServiceTestsSupport
   public void testEntityIdSanityChecksWorkForUntrustedIdp() {
     Set<String> trustedIdps = Sets.newHashSet("http://trusted.idp.example");
     userDetailsService = new JustInTimeProvisioningSAMLUserDetailsService(resolver, accountService,
-        inactiveAccountHander, accountRepo, Optional.of(trustedIdps));
+        inactiveAccountHander, accountRepo, Optional.of(trustedIdps), mpResolver);
 
     when(resolver.resolveSamlUserIdentifier(cred)).thenReturn(resolutionSuccess(T1_SAML_ID));
     when(cred.getRemoteEntityID()).thenReturn(SamlAuthenticationTestSupport.DEFAULT_IDP_ID);
@@ -210,7 +219,7 @@ public class JitUserDetailServiceTests extends JitUserDetailsServiceTestsSupport
   public void testEntityIdSanityChecksWorkForTrustedIdp() {
     Set<String> trustedIdps = Sets.newHashSet("http://trusted.idp.example", DEFAULT_IDP_ID);
     userDetailsService = new JustInTimeProvisioningSAMLUserDetailsService(resolver, accountService,
-        inactiveAccountHander, accountRepo, Optional.of(trustedIdps));
+        inactiveAccountHander, accountRepo, Optional.of(trustedIdps), mpResolver);
 
     when(resolver.resolveSamlUserIdentifier(cred)).thenReturn(resolutionSuccess(T1_SAML_ID));
     when(cred.getRemoteEntityID()).thenReturn(SamlAuthenticationTestSupport.DEFAULT_IDP_ID);

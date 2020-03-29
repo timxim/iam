@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
  */
 package it.infn.mw.iam.api.requests;
 
-import static it.infn.mw.iam.core.IamGroupRequestStatus.APPROVED;
 import static it.infn.mw.iam.core.IamGroupRequestStatus.PENDING;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
@@ -50,7 +54,7 @@ public class GroupRequestUtils {
 
   private static final IamAuthority ROLE_ADMIN = new IamAuthority("ROLE_ADMIN");
 
-  public Optional<IamGroupRequest> getGroupRequestUuid(String uuid) {
+  public Optional<IamGroupRequest> getOptionalGroupRequest(String uuid) {
     return groupRequestRepository.findByUuid(uuid);
   }
 
@@ -61,13 +65,16 @@ public class GroupRequestUtils {
   }
 
   public void checkRequestAlreadyExist(GroupRequestDto request) {
-    Optional<IamGroupRequest> result = groupRequestRepository
+    
+    List<IamGroupRequest> results = groupRequestRepository
       .findByUsernameAndGroup(request.getUsername(), request.getGroupName());
-    if (result.isPresent()) {
-      IamGroupRequestStatus status = result.get().getStatus();
-      if (PENDING.equals(status) || APPROVED.equals(status)) {
+    
+    for (IamGroupRequest r: results) {
+      IamGroupRequestStatus status = r.getStatus();
+      
+      if (PENDING.equals(status)) {
         throw new GroupRequestValidationError(
-            String.format("Group membership request already exist for [%s, %s]",
+            String.format("Group request already exists for [%s, %s]",
                 request.getUsername(), request.getGroupName()));
       }
     }
@@ -99,6 +106,19 @@ public class GroupRequestUtils {
                 request.getGroupName()));
       }
     }
+  }
+
+  public Set<String> getManagedGroups() {
+    Authentication authn = 
+    SecurityContextHolder.getContext().getAuthentication();
+    
+    return authn
+      .getAuthorities()
+      .stream()
+      .filter(a -> a.getAuthority().startsWith("ROLE_GM:"))
+      .map(a -> a.getAuthority().substring(8))
+      .collect(Collectors.toSet());
+
   }
 
   public boolean isPrivilegedUser() {

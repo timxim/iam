@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,11 +65,11 @@ public class IamGroupRequest implements Serializable {
   private String motivation;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name="creationtime", nullable = false)
   private Date creationTime;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = true)
+  @Column(name="lastupdatetime", nullable = true)
   private Date lastUpdateTime;
 
 

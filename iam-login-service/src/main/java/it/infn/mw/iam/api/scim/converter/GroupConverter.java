@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  */
 package it.infn.mw.iam.api.scim.converter;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +57,10 @@ public class GroupConverter implements Converter<ScimGroup, IamGroup> {
     IamGroup group = new IamGroup();
 
     group.setName(scimGroup.getDisplayName());
+    
+    if (scimGroup.getIndigoGroup() != null && StringUtils.isNotBlank(scimGroup.getIndigoGroup().getDescription())) {
+      group.setDescription(scimGroup.getIndigoGroup().getDescription());
+    }
 
     return group;
   }
@@ -70,7 +77,7 @@ public class GroupConverter implements Converter<ScimGroup, IamGroup> {
 
     for (IamAccount account : entity.getAccounts()) {
       ScimMemberRef memberRef = new ScimMemberRef.Builder().value(account.getUuid())
-        .display(account.getUsername())
+        .display(account.getUserInfo().getName())
         .ref(resourceLocationProvider.userLocation(account.getUuid()))
         .build();
       members.add(memberRef);
@@ -85,23 +92,27 @@ public class GroupConverter implements Converter<ScimGroup, IamGroup> {
     }
 
     IamGroup iamParentGroup = entity.getParentGroup();
-    ScimIndigoGroup scimParentGroup = null;
+    ScimIndigoGroup.Builder scimIndigoGroup = ScimIndigoGroup.getBuilder();
 
     if (iamParentGroup != null) {
+      
       ScimGroupRef parentGroupRef = ScimGroupRef.builder()
         .display(iamParentGroup.getName())
         .value(iamParentGroup.getUuid())
         .ref(resourceLocationProvider.groupLocation(iamParentGroup.getUuid()))
         .build();
-
-      scimParentGroup = ScimIndigoGroup.getBuilder().parentGroup(parentGroupRef).build();
+      
+      scimIndigoGroup.parentGroup(parentGroupRef);
+    } 
+    
+    if (isNotBlank(entity.getDescription())) {
+      scimIndigoGroup.description(entity.getDescription());
     }
-
     return ScimGroup.builder(entity.getName())
       .id(entity.getUuid())
       .meta(meta)
       .setMembers(members)
-      .indigoGroup(scimParentGroup)
+      .indigoGroup(scimIndigoGroup.build())
       .build();
   }
 

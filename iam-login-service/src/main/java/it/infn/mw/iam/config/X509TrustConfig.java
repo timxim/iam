@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
 import eu.emi.security.authn.x509.X509CertChainValidatorExt;
 import eu.emi.security.authn.x509.impl.SocketFactoryCreator;
+import it.infn.mw.iam.core.error.StartupError;
 
 @Configuration
 @Profile("canl")
@@ -52,19 +53,21 @@ public class X509TrustConfig {
   @Value("${x509.trustAnchorsRefreshMsec}")
   Long trustAnchorsRefreshInterval;
 
-  @Bean
-  public X509CertChainValidatorExt certificateValidator() {
+  @Value("${x509.tlsVersion}")
+  String tlsVersion;
+
+  X509CertChainValidatorExt certificateValidator() {
 
     return new CertificateValidatorBuilder().lazyAnchorsLoading(false)
-        .trustAnchorsDir(trustAnchorsDir)
-        .trustAnchorsUpdateInterval(trustAnchorsRefreshInterval.longValue()).build();
+      .trustAnchorsDir(trustAnchorsDir)
+      .trustAnchorsUpdateInterval(trustAnchorsRefreshInterval.longValue())
+      .build();
   }
 
-  @Bean
-  public SSLContext sslContext() {
+  SSLContext sslContext() {
 
     try {
-      SSLContext context = SSLContext.getInstance("TLSv1");
+      SSLContext context = SSLContext.getInstance(tlsVersion);
 
       X509TrustManager tm = SocketFactoryCreator.getSSLTrustManager(certificateValidator());
       SecureRandom r = new SecureRandom();
@@ -73,27 +76,31 @@ public class X509TrustConfig {
       return context;
 
     } catch (NoSuchAlgorithmException | KeyManagementException e) {
-      throw new RuntimeException(e);
+      throw new StartupError("Error configuring TLS context", e);
     }
 
   }
 
-  @Bean
+  @Bean(name="canlHttpClient")
   public HttpClient httpClient() {
 
     SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(sslContext());
 
     Registry<ConnectionSocketFactory> socketFactoryRegistry =
-        RegistryBuilder.<ConnectionSocketFactory>create().register("https", sf)
-            .register("http", PlainConnectionSocketFactory.getSocketFactory()).build();
+        RegistryBuilder.<ConnectionSocketFactory>create()
+          .register("https", sf)
+          .register("http", PlainConnectionSocketFactory.getSocketFactory())
+          .build();
 
     PoolingHttpClientConnectionManager connectionManager =
         new PoolingHttpClientConnectionManager(socketFactoryRegistry);
     connectionManager.setMaxTotal(10);
     connectionManager.setDefaultMaxPerRoute(10);
 
-    return HttpClientBuilder.create().setConnectionManager(connectionManager).disableAuthCaching()
-        .build();
+    return HttpClientBuilder.create()
+      .setConnectionManager(connectionManager)
+      .disableAuthCaching()
+      .build();
   }
 
   @Bean(name = "canlRequestFactory")

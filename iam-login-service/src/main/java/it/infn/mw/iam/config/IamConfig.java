@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package it.infn.mw.iam.config;
+
+import java.time.Clock;
+import java.util.Arrays;
 
 import org.h2.server.web.WebServlet;
 import org.mitre.oauth2.service.IntrospectionResultAssembler;
@@ -35,16 +38,63 @@ import it.infn.mw.iam.api.account.AccountUtils;
 import it.infn.mw.iam.api.aup.AUPSignatureCheckService;
 import it.infn.mw.iam.authn.oidc.OidcTokenEnhancer;
 import it.infn.mw.iam.core.IamIntrospectionResultAssembler;
-import it.infn.mw.iam.core.IamProperties;
 import it.infn.mw.iam.core.web.EnforceAupFilter;
+import it.infn.mw.iam.notification.NotificationProperties;
+import it.infn.mw.iam.notification.service.resolver.AddressResolutionService;
+import it.infn.mw.iam.notification.service.resolver.AdminNotificationDeliveryStrategy;
+import it.infn.mw.iam.notification.service.resolver.CompositeAdminsNotificationDelivery;
+import it.infn.mw.iam.notification.service.resolver.GroupManagerNotificationDeliveryStrategy;
+import it.infn.mw.iam.notification.service.resolver.NotifyAdminAddressStrategy;
+import it.infn.mw.iam.notification.service.resolver.NotifyAdminsStrategy;
+import it.infn.mw.iam.notification.service.resolver.NotifyGmStrategy;
+import it.infn.mw.iam.notification.service.resolver.NotifyGmsAndAdminsStrategy;
 import it.infn.mw.iam.persistence.repository.IamAupRepository;
-import it.infn.mw.iam.util.DumpHeadersFilter;
 
 @Configuration
 public class IamConfig {
 
   @Value("${iam.organisation.name}")
   private String iamOrganisationName;
+
+  @Bean
+  GroupManagerNotificationDeliveryStrategy gmDeliveryStrategy(
+      AdminNotificationDeliveryStrategy ands, AddressResolutionService ars,
+      NotificationProperties props) {
+    switch (props.getGroupManagerNotificationPolicy()) {
+      case NOTIFY_GMS:
+        return new NotifyGmStrategy(ars);
+      case NOTIFY_GMS_AND_ADMINS:
+        return new NotifyGmsAndAdminsStrategy(ands, ars);
+      default:
+        throw new IllegalArgumentException("Unhandled group manager notification policy: "
+            + props.getGroupManagerNotificationPolicy());
+    }
+  }
+
+  @Bean
+  AdminNotificationDeliveryStrategy adminNotificationDeliveryStrategy(AddressResolutionService ars,
+      NotificationProperties props) {
+
+    switch (props.getAdminNotificationPolicy()) {
+      case NOTIFY_ADDRESS:
+        return new NotifyAdminAddressStrategy(props);
+      case NOTIFY_ADMINS:
+        return new NotifyAdminsStrategy(ars);
+      case NOTIFY_ADDRESS_AND_ADMINS:
+        return new CompositeAdminsNotificationDelivery(
+            Arrays.asList(new NotifyAdminsStrategy(ars),
+                new NotifyAdminsStrategy(ars)));
+
+      default:
+        throw new IllegalArgumentException(
+            "Unhandled admin notification policy: " + props.getAdminNotificationPolicy());
+    }
+  }
+
+  @Bean
+  Clock defaultClock() {
+    return Clock.systemDefaultZone();
+  }
 
   @Bean
   AuthorizationCodeServices authorizationCodeServices() {
@@ -57,13 +107,6 @@ public class IamConfig {
   TokenEnhancer iamTokenEnhancer() {
 
     return new OidcTokenEnhancer();
-  }
-
-  @Bean
-  IamProperties iamProperties() {
-
-    IamProperties.INSTANCE.setOrganisationName(iamOrganisationName);
-    return IamProperties.INSTANCE;
   }
 
   @Bean
@@ -92,20 +135,5 @@ public class IamConfig {
 
     WebServlet h2Servlet = new WebServlet();
     return new ServletRegistrationBean(h2Servlet, "/h2-console/*");
-  }
-
-  @Bean
-  @Profile("dev")
-  FilterRegistrationBean requestLoggingFilter() {
-
-    DumpHeadersFilter dhf = new DumpHeadersFilter();
-
-    dhf.setIncludeClientInfo(true);
-    dhf.setIncludePayload(true);
-    dhf.setIncludeQueryString(true);
-
-    FilterRegistrationBean frb = new FilterRegistrationBean(dhf);
-    frb.setOrder(0);
-    return frb;
   }
 }

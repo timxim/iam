@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package it.infn.mw.iam.test.oauth;
 
 import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -26,10 +28,12 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.UnsupportedEncodingException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.infn.mw.iam.IamLoginService;
+import it.infn.mw.iam.core.oauth.IamDeviceCodeTokenGranter;
 import it.infn.mw.iam.core.oauth.TokenExchangeTokenGranter;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,10 +80,8 @@ public class ClientRegistrationTests extends ClientRegistrationTestSupport {
 
   @Before
   public void setup() throws Exception {
-    mvc = MockMvcBuilders.webAppContextSetup(context)
-      .apply(springSecurity())
-      .alwaysDo(print())
-      .build();
+    mvc =
+        MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).alwaysDo(log()).build();
   }
 
   @Test
@@ -124,7 +127,8 @@ public class ClientRegistrationTests extends ClientRegistrationTestSupport {
   @Test
   public void testCreateClientWithRegistrationReservedScopes() throws Exception {
 
-    String[] scopes = {"registration:read", "registration:write", "scim:read", "scim:write"};
+    String[] scopes =
+        {"registration:read", "registration:write", "scim:read", "scim:write", "proxy:generate"};
 
     String jsonInString = ClientJsonStringBuilder.builder().scopes(scopes).build();
 
@@ -237,8 +241,8 @@ public class ClientRegistrationTests extends ClientRegistrationTestSupport {
     clientRepo.saveClient(clientModel);
 
     clientJson = mvc
-      .perform(get(registrationUri).contentType(APPLICATION_JSON).header("Authorization",
-          "Bearer " + rat))
+      .perform(get(registrationUri).contentType(APPLICATION_JSON)
+        .header("Authorization", "Bearer " + rat))
       .andExpect(status().isOk())
       .andExpect(content().contentType(APPLICATION_JSON))
       .andExpect(
@@ -248,8 +252,9 @@ public class ClientRegistrationTests extends ClientRegistrationTestSupport {
       .getContentAsString();
 
     mvc
-      .perform(put(registrationUri).contentType(APPLICATION_JSON).header("Authorization",
-          "Bearer " + rat).content(clientJson))
+      .perform(put(registrationUri).contentType(APPLICATION_JSON)
+        .header("Authorization", "Bearer " + rat)
+        .content(clientJson))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.grant_types", hasItem("password")))
       .andExpect(jsonPath("$.grant_types", hasItem(TokenExchangeTokenGranter.GRANT_TYPE)));
@@ -259,26 +264,63 @@ public class ClientRegistrationTests extends ClientRegistrationTestSupport {
     clientModel.getGrantTypes().remove("password");
     clientModel.getGrantTypes().remove(TokenExchangeTokenGranter.GRANT_TYPE);
     clientRepo.saveClient(clientModel);
-    
+
     mvc
-    .perform(get(registrationUri).contentType(APPLICATION_JSON).header("Authorization",
-        "Bearer " + rat))
-    .andExpect(status().isOk())
-    .andExpect(content().contentType(APPLICATION_JSON))
-    .andExpect(
-        jsonPath("$.grant_types", not(hasItem("password"))))
-    .andExpect(
-        jsonPath("$.grant_types", not(hasItem(TokenExchangeTokenGranter.GRANT_TYPE))))
-    .andReturn()
-    .getResponse()
-    .getContentAsString();
-    
+      .perform(get(registrationUri).contentType(APPLICATION_JSON)
+        .header("Authorization", "Bearer " + rat))
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(APPLICATION_JSON))
+      .andExpect(jsonPath("$.grant_types", not(hasItem("password"))))
+      .andExpect(jsonPath("$.grant_types", not(hasItem(TokenExchangeTokenGranter.GRANT_TYPE))))
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
     mvc
-    .perform(put(registrationUri).contentType(APPLICATION_JSON).header("Authorization",
-        "Bearer " + rat).content(clientJson))
-    .andExpect(status().isOk())
-    .andExpect(jsonPath("$.grant_types", not(hasItem("password"))))
-    .andExpect(jsonPath("$.grant_types", not(hasItem(TokenExchangeTokenGranter.GRANT_TYPE))));
+      .perform(put(registrationUri).contentType(APPLICATION_JSON)
+        .header("Authorization", "Bearer " + rat)
+        .content(clientJson))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.grant_types", not(hasItem("password"))))
+      .andExpect(jsonPath("$.grant_types", not(hasItem(TokenExchangeTokenGranter.GRANT_TYPE))));
+
+  }
+
+  @Test
+  public void deviceCodeTimeoutNotAffectedWhenCreatingAndUpdatingClient()
+      throws UnsupportedEncodingException, Exception {
+    String jsonInString =
+        ClientJsonStringBuilder.builder().grantTypes("authorization_code").build();
+
+    String clientJson =
+        mvc.perform(post(REGISTER_ENDPOINT).contentType(APPLICATION_JSON).content(jsonInString))
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.registration_access_token").exists())
+          .andExpect(jsonPath("$.registration_client_uri").exists())
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+
+    JsonNode jsonNode = mapper.readTree(clientJson);
+
+    String rat = jsonNode.get("registration_access_token").asText();
+    String registrationUri = jsonNode.get("registration_client_uri").asText();
+
+    String clientId = jsonNode.get("client_id").asText();
+
+    ClientDetailsEntity clientModel = clientService.loadClientByClientId(clientId);
+    assertThat(clientModel.getGrantTypes(), not(contains(IamDeviceCodeTokenGranter.GRANT_TYPE)));
+    assertThat(clientModel.getDeviceCodeValiditySeconds(), greaterThan(0));
+
+    mvc
+      .perform(put(registrationUri).contentType(APPLICATION_JSON)
+        .header("Authorization", "Bearer " + rat)
+        .content(clientJson))
+      .andExpect(status().isOk());
+
+    clientModel = clientService.loadClientByClientId(clientId);
+    assertThat(clientModel.getGrantTypes(), not(contains(IamDeviceCodeTokenGranter.GRANT_TYPE)));
+    assertThat(clientModel.getDeviceCodeValiditySeconds(), greaterThan(0));
 
   }
 

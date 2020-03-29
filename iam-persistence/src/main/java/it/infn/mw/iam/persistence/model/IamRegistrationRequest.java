@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,19 @@ package it.infn.mw.iam.persistence.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -35,7 +40,7 @@ import it.infn.mw.iam.core.IamRegistrationRequestStatus;
 
 @Entity
 @Table(name = "iam_reg_request")
-public class IamRegistrationRequest implements Serializable{
+public class IamRegistrationRequest implements Serializable {
 
   /**
    * 
@@ -54,7 +59,7 @@ public class IamRegistrationRequest implements Serializable{
   private IamAccount account;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name = "creationtime", nullable = false)
   private Date creationTime;
 
   @Enumerated(EnumType.STRING)
@@ -62,13 +67,21 @@ public class IamRegistrationRequest implements Serializable{
   private IamRegistrationRequestStatus status;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = true)
+  @Column(name = "lastupdatetime", nullable = true)
   private Date lastUpdateTime;
 
   @Column(nullable = false)
   private String notes;
 
-  public IamRegistrationRequest() {}
+  @ElementCollection
+  @CollectionTable(
+      indexes = {@Index(columnList = "prefix,name,val"), @Index(columnList = "prefix,name")},
+      name = "iam_reg_request_labels", joinColumns = @JoinColumn(name = "request_id"))
+  private Set<IamLabel> labels = new HashSet<>();
+
+  public IamRegistrationRequest() {
+    // empty on purpose
+  }
 
   public Long getId() {
 
@@ -136,6 +149,14 @@ public class IamRegistrationRequest implements Serializable{
 
   public void setNotes(String notes) {
     this.notes = notes;
+  }
+
+  public Set<IamLabel> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(Set<IamLabel> labels) {
+    this.labels = labels;
   }
 
   @Override

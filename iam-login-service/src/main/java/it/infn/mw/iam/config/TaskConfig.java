@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import it.infn.mw.iam.core.user.IamAccountService;
 import it.infn.mw.iam.notification.NotificationDelivery;
 import it.infn.mw.iam.notification.NotificationDeliveryTask;
-import it.infn.mw.iam.notification.NotificationStoreService;
+import it.infn.mw.iam.notification.service.NotificationStoreService;
 
 @Configuration
 @EnableScheduling

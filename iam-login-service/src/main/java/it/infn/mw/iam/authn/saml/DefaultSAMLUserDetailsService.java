@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class DefaultSAMLUserDetailsService extends SAMLUserDetailsServiceSupport
   @Override
   public Object loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
 
-    IamSamlId samlId = resolverSamlId(credential);
+    IamSamlId samlId = resolveSamlId(credential);
 
     Optional<IamAccount> account = repo.findBySamlId(samlId);
 

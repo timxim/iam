@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package it.infn.mw.iam.authn.saml;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +32,6 @@ import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.metadata.EntityDescriptor;
 import org.opensaml.saml2.metadata.IDPSSODescriptor;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
-import org.opensaml.samlext.saml2mdui.Logo;
 import org.opensaml.samlext.saml2mdui.UIInfo;
 import org.opensaml.xml.XMLObject;
 import org.slf4j.Logger;
@@ -64,8 +66,9 @@ public class DefaultMetadataLookupService implements MetadataLookupService {
 
   private void initializeMetadataSet() throws MetadataProviderException {
 
+    final Instant startTime = Instant.now();
     LOG.info("Initializing IdP descriptor list from metadata");
-
+    
     Set<IdpDescription> newDescriptions = new HashSet<>();
 
     for (String idpName : metadataManager.getIDPEntityNames()) {
@@ -82,6 +85,8 @@ public class DefaultMetadataLookupService implements MetadataLookupService {
       descriptions = newDescriptions;
     } finally {
       lock.writeLock().unlock();
+      final Duration d = Duration.between(startTime, Instant.now());
+      LOG.debug("Descriptor list initialization took {} msec", d.toMillis());
     }
 
   }
@@ -101,16 +106,11 @@ public class DefaultMetadataLookupService implements MetadataLookupService {
           if (!uiInfo.getDisplayNames().isEmpty()) {
             result.setOrganizationName(uiInfo.getDisplayNames().get(0).getName().getLocalString());
           }
-
-          if (!uiInfo.getLogos().isEmpty()) {
-            uiInfo.getLogos().stream().min(Comparator.comparing(Logo::getHeight)).ifPresent(
-                l -> result.setImageUrl(l.getURL()));
-          }
         }
       }
     }
 
-    if (Strings.isNullOrEmpty(result.getOrganizationName())) {
+    if (isNullOrEmpty(result.getOrganizationName())) {
       result.setOrganizationName(result.getEntityId());
     }
 

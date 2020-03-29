@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,20 @@ import it.infn.mw.iam.api.scim.model.ScimPatchOperation;
 
 /**
  * Builds a list of {@link AccountUpdater} objects linked to a patch operation
+ * @param <E> The entity type
+ * @param <S> The scim value type
  */
 @FunctionalInterface
 public interface AccountUpdaterFactory<E, S> {
 
 
   /**
+   * Returns a list of updaters for the patch operation
+   * @param entity the entity
+   * @param u the patch operation
    * 
-   * @param entity @param u @return
+   * @return the list of updaters 
+   * 
    */
   List<AccountUpdater> getUpdatersForPatchOperation(E entity, ScimPatchOperation<S> u);
 }

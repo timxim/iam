@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,23 @@ import static it.infn.mw.iam.core.NameUtils.getFormatted;
 import java.io.Serializable;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import org.mitre.openid.connect.model.Address;
-import org.mitre.openid.connect.model.UserInfo;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import it.infn.mw.iam.core.IamProperties;
-
 @Entity
 @Table(name = "iam_user_info")
-public class IamUserInfo implements UserInfo, Serializable{
+public class IamUserInfo implements Serializable {
 
   /**
    * 
@@ -53,13 +50,13 @@ public class IamUserInfo implements UserInfo, Serializable{
   @OneToOne(mappedBy = "userInfo")
   private IamAccount iamAccount;
 
-  @Column(nullable = false, length = 64)
+  @Column(name="givenname", nullable = false, length = 64)
   private String givenName;
 
-  @Column(nullable = false, length = 64)
+  @Column(name="familyname", nullable = false, length = 64)
   private String familyName;
 
-  @Column(length = 64)
+  @Column(name="middlename", length = 64)
   private String middleName;
 
   private String nickname;
@@ -73,22 +70,28 @@ public class IamUserInfo implements UserInfo, Serializable{
   @Column(nullable = false, length = 128)
   private String email;
 
+  @Column(name="emailverified")
   private Boolean emailVerified;
 
   private String gender;
   private String zoneinfo;
   private String locale;
+  
+  @Column(name="phonenumber")
   private String phoneNumber;
 
+  @Column(name="phonenumberverified")
   private Boolean phoneNumberVerified;
-  private Address address;
+  
+  @OneToOne(optional=true, cascade=CascadeType.ALL)
+  @JoinColumn(name="address_id")
+  private IamAddress address;
 
   private String birthdate;
 
   private transient JsonObject src;
 
-  @Override
-  public Address getAddress() {
+  public IamAddress getAddress() {
 
     return address;
   }
@@ -173,26 +176,22 @@ public class IamUserInfo implements UserInfo, Serializable{
     return profile;
   }
 
-  @Override
-  public JsonObject getSource() {
 
+  public JsonObject getSource() {
     return src;
   }
 
   public JsonObject getSrc() {
-
-    return src;
+    return getSource();
   }
 
-  @Override
   public String getSub() {
 
     return iamAccount.getUuid();
   }
 
-  public String getUpdatedTime() {
-
-    return getIamAccount().getLastUpdateTime().toString();
+  public long getUpdatedTime() {
+    return getIamAccount().getLastUpdateTime().toInstant().getEpochSecond();
   }
 
   public String getWebsite() {
@@ -205,8 +204,8 @@ public class IamUserInfo implements UserInfo, Serializable{
     return zoneinfo;
   }
 
-  @Override
-  public void setAddress(Address address) {
+
+  public void setAddress(IamAddress address) {
 
     this.address = address;
   }
@@ -296,7 +295,7 @@ public class IamUserInfo implements UserInfo, Serializable{
     this.src = src;
   }
 
-  @Override
+
   public void setSub(String sub) {
 
     // NO-OP
@@ -323,7 +322,6 @@ public class IamUserInfo implements UserInfo, Serializable{
     return iamAccount.getGroups();
   }
 
-  @Override
   public JsonObject toJson() {
 
     if (src == null) {
@@ -377,22 +375,19 @@ public class IamUserInfo implements UserInfo, Serializable{
         obj.add("groups", groups);
       }
 
-      obj.addProperty("organisation_name", IamProperties.INSTANCE.getOrganisationName());
-
       return obj;
     } else {
       return src;
     }
 
   }
-
-  @Override
+  
+  
   public String getName() {
 
     return getFormatted(this.givenName, this.middleName, this.familyName);
   }
-
-  @Override
+  
   public void setName(String name) {
 
     // NO-OP

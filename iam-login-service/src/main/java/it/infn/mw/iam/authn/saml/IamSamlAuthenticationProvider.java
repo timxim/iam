@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,21 @@ import org.springframework.security.saml.SAMLCredential;
 
 import com.google.common.base.Joiner;
 
+import it.infn.mw.iam.authn.common.config.AuthenticationValidator;
 import it.infn.mw.iam.authn.saml.util.SamlUserIdentifierResolutionResult;
 import it.infn.mw.iam.authn.saml.util.SamlUserIdentifierResolver;
 import it.infn.mw.iam.persistence.model.IamSamlId;
 
 public class IamSamlAuthenticationProvider extends SAMLAuthenticationProvider {
 
-  final SamlUserIdentifierResolver userIdResolver;
-  final Joiner joiner = Joiner.on(",").skipNulls();
+  private final SamlUserIdentifierResolver userIdResolver;
+  private final AuthenticationValidator<ExpiringUsernameAuthenticationToken> validator;
+  private final Joiner joiner = Joiner.on(",").skipNulls();
 
-  public IamSamlAuthenticationProvider(SamlUserIdentifierResolver resolver) {
+  public IamSamlAuthenticationProvider(SamlUserIdentifierResolver resolver,
+      AuthenticationValidator<ExpiringUsernameAuthenticationToken> validator) {
     this.userIdResolver = resolver;
+    this.validator = validator;
   }
 
   private Supplier<AuthenticationServiceException> handleResolutionFailure(
@@ -69,6 +73,8 @@ public class IamSamlAuthenticationProvider extends SAMLAuthenticationProvider {
 
     IamSamlId samlId = result.getResolvedId().orElseThrow(handleResolutionFailure(result));
 
+    validator.validateAuthentication(token);
+    
     return new SamlExternalAuthenticationToken(samlId, token, token.getTokenExpiration(),
         user.getUsername(), token.getCredentials(), token.getAuthorities());
 

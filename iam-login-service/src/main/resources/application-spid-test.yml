@@ -1,0 +1,65 @@
+#
+# Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+saml:
+  id-resolvers: spidCode,eduPersonUniqueId
+  jit-account-provisioning:
+    enabled: true
+    trusted-idps: all
+    
+    default-mapping:
+      username-mapping-policy: attributevaluepolicy
+      email-attribute: spidMail
+      family-name-attribute: spidFamilyName
+      first-name-attribute: spidName
+      username-attribute: spidMail
+    
+    entity-mapping:
+    - entity-ids: https://test-idp.cloud.cnaf.infn.it/idp/shibboleth
+      mapping:
+        username-mapping-policy: attributevaluepolicy
+        email-attribute: mail
+        family-name-attribute: sn
+        first-name-attribute: givenName
+        username-attribute: eduPersonPrincipalName
+  
+  signature:
+    algorithm-name: RSA
+    algorithm-uri: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+    digest-uri: http://www.w3.org/2001/04/xmlenc#sha256
+  
+  nameid-policy: transient
+  local-metadata:
+    generated: false
+    location-url: classpath:/saml/iam.local.io.metadata.xml
+
+  custom-profile:
+  - entity-ids: https://spid-idp.example:8443
+    options:
+      spid-idp: true
+      spid-authentication-level: spidl2
+
+  idp-metadata:
+    -
+      metadata-url: classpath:/saml/spid-idp.example.metadata.xml
+      require-valid-signature: false
+      require-sirtfi: false
+      require-rs: false
+    -
+      metadata-url: classpath:/saml/test-idp.cloud.cnaf.infn.it.metadata.xml
+      require-valid-signature: false
+      require-sirtfi: false
+      require-rs: false

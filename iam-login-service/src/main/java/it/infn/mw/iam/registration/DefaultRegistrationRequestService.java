@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@ import static it.infn.mw.iam.core.IamRegistrationRequestStatus.APPROVED;
 import static it.infn.mw.iam.core.IamRegistrationRequestStatus.CONFIRMED;
 import static it.infn.mw.iam.core.IamRegistrationRequestStatus.NEW;
 import static it.infn.mw.iam.core.IamRegistrationRequestStatus.REJECTED;
+import static java.util.Objects.isNull;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,6 +40,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 
+import it.infn.mw.iam.api.common.LabelDTOConverter;
 import it.infn.mw.iam.api.scim.converter.UserConverter;
 import it.infn.mw.iam.api.scim.exception.IllegalArgumentException;
 import it.infn.mw.iam.api.scim.exception.ScimResourceNotFoundException;
@@ -53,6 +57,7 @@ import it.infn.mw.iam.core.IamRegistrationRequestStatus;
 import it.infn.mw.iam.core.user.IamAccountService;
 import it.infn.mw.iam.notification.NotificationFactory;
 import it.infn.mw.iam.persistence.model.IamAccount;
+import it.infn.mw.iam.persistence.model.IamLabel;
 import it.infn.mw.iam.persistence.model.IamRegistrationRequest;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
 import it.infn.mw.iam.persistence.repository.IamAupRepository;
@@ -89,8 +94,17 @@ public class DefaultRegistrationRequestService
   
   @Autowired
   private IamAupSignatureRepository iamAupSignatureRepo;
+  
+  @Autowired
+  private LabelDTOConverter labelConverter;
 
   private ApplicationEventPublisher eventPublisher;
+  
+  private IamRegistrationRequest findRequestById(String requestUuid) {
+    return
+        requestRepository.findByUuid(requestUuid).orElseThrow(() -> new ScimResourceNotFoundException(
+            String.format("No request mapped to uuid [%s]", requestUuid)));
+  }
 
   private static final Table<IamRegistrationRequestStatus, IamRegistrationRequestStatus, Boolean> allowedStateTransitions =
       new ImmutableTable.Builder<IamRegistrationRequestStatus, IamRegistrationRequestStatus, Boolean>()
@@ -132,44 +146,51 @@ public class DefaultRegistrationRequestService
   }
   
   @Override
-  public RegistrationRequestDto createRequest(RegistrationRequestDto request,
+  public RegistrationRequestDto createRequest(RegistrationRequestDto dto,
       Optional<ExternalAuthenticationRegistrationInfo> extAuthnInfo) {
 
-    notesSanityChecks(request.getNotes());
+    notesSanityChecks(dto.getNotes());
 
     ScimUser.Builder userBuilder = ScimUser.builder()
-      .buildName(request.getGivenname(), request.getFamilyname())
-      .buildEmail(request.getEmail())
-      .userName(request.getUsername())
-      .password(request.getPassword());
+      .buildName(dto.getGivenname(), dto.getFamilyname())
+      .buildEmail(dto.getEmail())
+      .userName(dto.getUsername())
+      .password(dto.getPassword());
 
     extAuthnInfo.ifPresent(i -> addExternalAuthnInfo(userBuilder, i));
 
-    IamAccount newAccount =
+    IamAccount accountEntity =
         accountService.createAccount(userConverter.entityFromDto(userBuilder.build()));
-    newAccount.setConfirmationKey(tokenGenerator.generateToken());
-    newAccount.setActive(false);
+    accountEntity.setConfirmationKey(tokenGenerator.generateToken());
+    accountEntity.setActive(false);
 
-    createAupSignatureForAccountIfNeeded(newAccount);
+    createAupSignatureForAccountIfNeeded(accountEntity);
     
-    IamRegistrationRequest regRequest = new IamRegistrationRequest();
-    regRequest.setUuid(UUID.randomUUID().toString());
-    regRequest.setCreationTime(new Date());
+    IamRegistrationRequest requestEntity = new IamRegistrationRequest();
+    requestEntity.setUuid(UUID.randomUUID().toString());
+    requestEntity.setCreationTime(new Date());
 
-    regRequest.setStatus(NEW);
-    regRequest.setNotes(request.getNotes());
+    requestEntity.setStatus(NEW);
+    requestEntity.setNotes(dto.getNotes());
 
-    regRequest.setAccount(newAccount);
-    newAccount.setRegistrationRequest(regRequest);
+    requestEntity.setAccount(accountEntity);
+    accountEntity.setRegistrationRequest(requestEntity);
+    
+    if (!isNull(dto.getLabels())) {
+      Set<IamLabel> labels = dto.getLabels().stream().map(labelConverter::entityFromDto)
+          .collect(Collectors.toSet());
+      
+      requestEntity.setLabels(labels);
+    }
+    
+    requestRepository.save(requestEntity);
 
-    requestRepository.save(regRequest);
+    eventPublisher.publishEvent(new RegistrationRequestEvent(this, requestEntity,
+        "New registration request from user " + accountEntity.getUsername()));
 
-    eventPublisher.publishEvent(new RegistrationRequestEvent(this, regRequest,
-        "New registration request from user " + newAccount.getUsername()));
+    notificationFactory.createConfirmationMessage(requestEntity);
 
-    notificationFactory.createConfirmationMessage(regRequest);
-
-    return converter.fromEntity(regRequest);
+    return converter.fromEntity(requestEntity);
   }
 
   @Override
@@ -214,41 +235,15 @@ public class DefaultRegistrationRequestService
     return requests;
   }
 
-  @Override
-  public RegistrationRequestDto updateStatus(String uuid, IamRegistrationRequestStatus status) {
-
-    IamRegistrationRequest request =
-        requestRepository.findByUuid(uuid).orElseThrow(() -> new ScimResourceNotFoundException(
-            String.format("No request mapped to uuid [%s]", uuid)));
-
-    if (!checkStateTransition(request.getStatus(), status)) {
-      throw new IllegalArgumentException(
-          String.format("Bad status transition from [%s] to [%s]", request.getStatus(), status));
-    }
-
-    RegistrationRequestDto retval = null;
-
-    if (APPROVED.equals(status)) {
-      retval = handleApprove(request);
-
-    } else if (CONFIRMED.equals(status)) {
-      retval = handleConfirm(request);
-
-    } else if (REJECTED.equals(status)) {
-      retval = handleReject(request);
-    }
-
-    return retval;
-  }
 
   @Override
   public RegistrationRequestDto confirmRequest(String confirmationKey) {
 
-    IamRegistrationRequest reg = requestRepository.findByAccountConfirmationKey(confirmationKey)
+    IamRegistrationRequest request = requestRepository.findByAccountConfirmationKey(confirmationKey)
       .orElseThrow(() -> new ScimResourceNotFoundException(String
         .format("No registration request found for registration_key [%s]", confirmationKey)));
-
-    return updateStatus(reg.getUuid(), CONFIRMED);
+    
+    return handleConfirm(request);
   }
 
   @Override
@@ -263,7 +258,7 @@ public class DefaultRegistrationRequestService
     return !iamAccountRepo.findByEmail(emailAddress).isPresent();
   }
 
-  private boolean checkStateTransition(IamRegistrationRequestStatus currentStatus,
+  private boolean checkStatusTransition(IamRegistrationRequestStatus currentStatus,
       final IamRegistrationRequestStatus newStatus) {
 
     return allowedStateTransitions.contains(currentStatus, newStatus);
@@ -274,7 +269,8 @@ public class DefaultRegistrationRequestService
     account.setActive(true);
     account.setResetKey(tokenGenerator.generateToken());
     account.setLastUpdateTime(new Date());
-
+    account.setLabels(request.getLabels());
+    
     notificationFactory.createAccountActivatedMessage(request);
 
     request.setStatus(APPROVED);
@@ -288,26 +284,23 @@ public class DefaultRegistrationRequestService
   }
 
   private RegistrationRequestDto handleConfirm(IamRegistrationRequest request) {
+    request.setStatus(CONFIRMED);
+    request.setLastUpdateTime(new Date());
     request.getAccount().getUserInfo().setEmailVerified(true);
     request.getAccount().setConfirmationKey(null);
-
-    if (request.getStatus().equals(NEW)) {
-      request.setStatus(CONFIRMED);
-      notificationFactory.createAdminHandleRequestMessage(request);
-    }
-
-    request.setLastUpdateTime(new Date());
     requestRepository.save(request);
 
+    notificationFactory.createAdminHandleRequestMessage(request);
+    
     eventPublisher.publishEvent(new RegistrationConfirmEvent(this, request,
-        String.format("User %s confirm registration request", request.getAccount().getUsername())));
+        String.format("User %s confirmed registration request", request.getAccount().getUsername())));
 
     return converter.fromEntity(request);
   }
 
-  private RegistrationRequestDto handleReject(IamRegistrationRequest request) {
+  private RegistrationRequestDto handleReject(IamRegistrationRequest request, Optional<String> motivation) {
     request.setStatus(REJECTED);
-    notificationFactory.createRequestRejectedMessage(request);
+    notificationFactory.createRequestRejectedMessage(request, motivation);
     RegistrationRequestDto retval = converter.fromEntity(request);
 
     accountService.deleteAccount(request.getAccount());
@@ -331,6 +324,32 @@ public class DefaultRegistrationRequestService
 
   public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
     this.eventPublisher = publisher;
+  }
+
+  @Override
+  public RegistrationRequestDto rejectRequest(String requestUuid, Optional<String> motivation) {
+    
+    IamRegistrationRequest request = findRequestById(requestUuid);
+    
+    if (!checkStatusTransition(request.getStatus(), REJECTED)) {
+      throw new IllegalArgumentException(
+          String.format("Bad status transition from [%s] to [%s]", request.getStatus(), APPROVED));
+    }
+    
+    return handleReject(request, motivation);
+  }
+  
+  @Override
+  public RegistrationRequestDto approveRequest(String requestUuid) {
+    
+    IamRegistrationRequest request = findRequestById(requestUuid);
+
+    if (!checkStatusTransition(request.getStatus(), APPROVED)) {
+      throw new IllegalArgumentException(
+          String.format("Bad status transition from [%s] to [%s]", request.getStatus(), APPROVED));
+    }
+    
+    return handleApprove(request);
   }
 
 }

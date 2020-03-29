@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,13 +141,13 @@ public class UserConverter implements Converter<ScimUser, IamAccount> {
     userInfo.setEmail(scimUser.getEmails().get(0).getValue());
     userInfo.setGivenName(scimUser.getName().getGivenName());
     userInfo.setFamilyName(scimUser.getName().getFamilyName());
-    userInfo.setMiddleName(scimUser.getName().getMiddleName());
 
     if (scimUser.hasPhotos()) {
       userInfo.setPicture(scimUser.getPhotos().get(0).getValue());
     }
 
     if (scimUser.hasAddresses()) {
+      
       userInfo.setAddress(addressConverter.entityFromDto(scimUser.getAddresses().get(0)));
     }
 
@@ -206,7 +206,6 @@ public class UserConverter implements Converter<ScimUser, IamAccount> {
     return ScimName.builder()
       .givenName(entity.getUserInfo().getGivenName())
       .familyName(entity.getUserInfo().getFamilyName())
-      .middleName(entity.getUserInfo().getMiddleName())
       .build();
   }
 

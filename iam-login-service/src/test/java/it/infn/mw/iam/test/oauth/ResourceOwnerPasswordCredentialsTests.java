@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,10 +85,10 @@ public class ResourceOwnerPasswordCredentialsTests {
 
   @Autowired
   private OAuth2TokenEntityService tokenService;
-  
+
   @Autowired
   private IamOAuthAccessTokenRepository accessTokenRepo;
-  
+
   @Autowired
   private IamOAuthRefreshTokenRepository refreshTokenRepo;
 
@@ -98,9 +98,9 @@ public class ResourceOwnerPasswordCredentialsTests {
   public void setup() throws Exception {
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
-    
+
     accessTokenRepo.deleteAll();
     refreshTokenRepo.deleteAll();
   }
@@ -197,8 +197,8 @@ public class ResourceOwnerPasswordCredentialsTests {
         .param("password", PASSWORD)
         .param("scope", SCOPE))
       .andExpect(status().isUnauthorized())
-//      .andExpect(jsonPath("$.error", equalTo("Unauthorized")))
-//      .andExpect(jsonPath("$.message", equalTo("Bad credentials")))
+      .andExpect(jsonPath("$.error", equalTo("unauthorized")))
+      .andExpect(jsonPath("$.error_description", equalTo("Bad credentials")))
       ;
     // @formatter:on
   }
@@ -218,8 +218,8 @@ public class ResourceOwnerPasswordCredentialsTests {
         .param("scope", SCOPE)
         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
       .andExpect(status().isUnauthorized())
-//      .andExpect(jsonPath("$.error", equalTo("Unauthorized")))
-//      .andExpect(jsonPath("$.message", equalTo("Client with id unknown was not found")))
+      .andExpect(jsonPath("$.error", equalTo("unauthorized")))
+      .andExpect(jsonPath("$.error_description", equalTo("Bad credentials")))
       ;
     // @formatter:on
   }
@@ -273,11 +273,11 @@ public class ResourceOwnerPasswordCredentialsTests {
 
     IamAccount testAccount = accountRepo.findByUsername(USERNAME)
       .orElseThrow(() -> new AssertionError(String.format("Expected %s user not found", USERNAME)));
-    
+
     accountService.deleteAccount(testAccount);
 
     assertThat(tokenService.getAllAccessTokensForUser(USERNAME), hasSize(0));
     assertThat(tokenService.getAllRefreshTokensForUser(USERNAME), hasSize(0));
-    
+
   }
 }

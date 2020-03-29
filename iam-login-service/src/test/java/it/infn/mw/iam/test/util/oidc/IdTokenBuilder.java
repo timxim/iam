@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  */
 package it.infn.mw.iam.test.util.oidc;
 
+import static com.google.common.collect.Maps.newHashMap;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.mitre.jose.keystore.JWKSetKeyStore;
@@ -50,6 +53,8 @@ public class IdTokenBuilder {
   final JWKSetKeyStore keyStore;
   final JWSAlgorithm signingAlgo;
   JWSSigner signer;
+  
+  Map<String, String> customClaims = newHashMap();
 
   public IdTokenBuilder(JWKSetKeyStore keyStore, JWSAlgorithm algo) {
     Calendar cal = Calendar.getInstance();
@@ -101,6 +106,11 @@ public class IdTokenBuilder {
     this.nonce = nonce;
     return this;
   }
+  
+  public IdTokenBuilder customClaim(String name, String value) {
+    this.customClaims.put(name, value);
+    return this;
+  }
 
   public String build() throws JOSEException {
     JWTClaimsSet.Builder idClaims = new JWTClaimsSet.Builder();
@@ -123,6 +133,10 @@ public class IdTokenBuilder {
 
     String keyId = keyStore.getKeys().get(0).getKeyID();
     idClaims.claim("kid", keyId);
+    
+    customClaims.forEach((k,v)->{
+      idClaims.claim(k, v);
+    });
 
     JWSHeader header = new JWSHeader(signingAlgo, null, null, null, null, null, null, null, null,
 	null, keyId, null, null);

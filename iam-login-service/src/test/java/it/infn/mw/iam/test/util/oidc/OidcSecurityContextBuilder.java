@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.common.base.Strings;
 
 import it.infn.mw.iam.authn.oidc.OidcExternalAuthenticationToken;
-import it.infn.mw.iam.test.util.SecurityContextBuilderSupport;
+import it.infn.mw.iam.util.test.SecurityContextBuilderSupport;
 
 public class OidcSecurityContextBuilder extends SecurityContextBuilderSupport {
 

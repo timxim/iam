@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,6 +139,11 @@ public class AccessTokenEnhancerTests extends EndpointsTestUtils {
     assertThat(token.getJWTClaimsSet().getClaim("preferred_username"), is(nullValue()));
     assertThat(token.getJWTClaimsSet().getClaim("organisation_name"), is(nullValue()));
     assertThat(token.getJWTClaimsSet().getClaim("groups"), is(nullValue()));
+  }
+  
+  public void accessTokenDoesNotIncludeNbfByDefault() throws Exception {
+    JWT token = JWTParser.parse(getAccessTokenForUser("openid"));
+    assertThat(token.getJWTClaimsSet().getNotBeforeTime(), nullValue());
   }
 
 }

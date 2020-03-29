@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.ParseException;
 import java.util.Date;
-
-import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +44,7 @@ import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +83,7 @@ public class TokenExchangeTests extends EndpointsTestUtils {
   public void setup() throws Exception {
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
   }
 
@@ -159,7 +159,7 @@ public class TokenExchangeTests extends EndpointsTestUtils {
     // @formatter:off
     // get user info on token, this fails as we did not 
     // request to openid scope
-    mvc.perform(post("/userinfo")
+    mvc.perform(get("/userinfo")
         .header("Authorization", "Bearer "+actorAccessToken))
       .andExpect(status().isForbidden());
     // @formatter:on
@@ -278,7 +278,7 @@ public class TokenExchangeTests extends EndpointsTestUtils {
     // get user info on token, this fails as we did not
     // request to openid scope
     // @formatter:off
-    mvc.perform(post("/userinfo")
+    mvc.perform(get("/userinfo")
         .header("Authorization", "Bearer " + actorAccessToken))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.sub", equalTo("80e5fb8d-b7c8-451a-89ba-346ae278a66f")));

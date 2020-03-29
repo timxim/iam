@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,16 @@ public class GroupRequestDto {
   private String uuid;
 
   private String username;
+  
+  private String userUuid;
+  
+  private String userFullName;
 
   @NotEmpty
   @IamGroupName(message = "Invalid membership request: group does not exist")
   private String groupName;
+  
+  private String groupUuid;
 
   private String status;
 
@@ -55,15 +61,21 @@ public class GroupRequestDto {
 
   @JsonCreator
   public GroupRequestDto(@JsonProperty("uuid") String uuid,
+      @JsonProperty("userUuid") String userUuid,
+      @JsonProperty("userFullName") String userFullName,
       @JsonProperty("username") String username, @JsonProperty("group_name") String groupName,
+      @JsonProperty("group_uuid") String groupUuid,
       @JsonProperty("status") String status, @JsonProperty("notes") String notes,
       @JsonProperty("motivation") String motivation,
       @JsonProperty("creation_time") Date creationTime,
       @JsonProperty("last_update_time") Date lastUpdateTime) {
-    super();
+    
     this.uuid = uuid;
+    this.userUuid = userUuid;
     this.username = username;
+    this.userFullName = userFullName;
     this.groupName = groupName;
+    this.groupUuid = groupUuid;
     this.status = status;
     this.notes = notes;
     this.motivation = motivation;
@@ -133,5 +145,29 @@ public class GroupRequestDto {
 
   public void setLastUpdateTime(Date lastUpdateTime) {
     this.lastUpdateTime = lastUpdateTime;
+  }
+  
+  public String getUserUuid() {
+    return userUuid;
+  }
+  
+  public void setUserUuid(String userUuid) {
+    this.userUuid = userUuid;
+  }
+  
+  public String getUserFullName() {
+    return userFullName;
+  }
+  
+  public void setUserFullName(String userFullName) {
+    this.userFullName = userFullName;
+  }
+  
+  public String getGroupUuid() {
+    return groupUuid;
+  }
+  
+  public void setGroupUuid(String groupUuid) {
+    this.groupUuid = groupUuid;
   }
 }

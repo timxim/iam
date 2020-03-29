@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.web.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
@@ -30,7 +31,7 @@ public class IamErrorController implements ErrorController {
   private static final String IAM_ERROR_VIEW = "iam/error";
   private static final String PATH = "/error";
 
-  @RequestMapping(PATH)
+  @RequestMapping(method=RequestMethod.GET, path=PATH)
   public ModelAndView error(HttpServletRequest request) {
 
     ModelAndView errorPage = new ModelAndView(IAM_ERROR_VIEW);
@@ -49,11 +50,6 @@ public class IamErrorController implements ErrorController {
     return errorPage;
   }
   
-  @RequestMapping("/exception")
-  public String exception(){
-    throw new IllegalStateException("Illo camughe!");
-  }
-
   private int getErrorCode(HttpServletRequest httpRequest) {
     return (Integer) httpRequest.getAttribute("javax.servlet.error.status_code");
   }

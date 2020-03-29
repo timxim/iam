@@ -1,0 +1,77 @@
+<!--
+
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!-- Current Active Access Tokens Box -->
+<div class="box box-primary" id="groups-list">
+    <div class="box-header with-border">
+        <div class="input-group">
+            <input placeholder="Search.." ng-model="$ctrl.filter" class="form-control" ng-change="$ctrl.searchGroups(1)" ng-model-options="{debounce: 250}" />
+            <div class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="$ctrl.resetFilter()">Show all</button>
+            </div>
+        </div>
+    </div>
+    <div class="box-body">
+
+        <div class="text-center" ng-if="$ctrl.filter">
+            <p>Found <span id="groups_filtered"><strong>{{$ctrl.totalResults}}</strong></span> groups matching filter (out of <strong>{{$root.groupsCount}}</strong>)</p>
+        </div>
+
+        <div ng-if="!$ctrl.groups.length">No groups found
+        </div>
+        <div class="table-responsive" ng-if="$ctrl.groups.length">
+
+            <table class="table no-margin table-striped" id="groupslist">
+                <thead>
+                    <tr>
+                        <th>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('name', 'asc')" ng-if="$ctrl.sortDirection == 'desc'">Name</span>
+                            <span style="cursor: pointer" ng-click="$ctrl.sortBy('name', 'desc')" ng-if="$ctrl.sortDirection == 'asc'">Name</span> &nbsp;
+                            <i class="fa fa-angle-down" ng-if="$ctrl.sortDirection == 'desc' && $ctrl.sortByValue == 'name'"></i>
+                            <i class="fa fa-angle-up" ng-if="$ctrl.sortDirection == 'asc' && $ctrl.sortByValue == 'name'"></i>
+                        </th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="group in $ctrl.groups">
+                        <!-- name -->
+                        <td class="col-md-8"><a ui-sref="group({id: group.id})">{{group.displayName}}</a></td>
+                        <!-- actions -->
+                        <td class="text-right">
+                            <button id="add_subgroup_{{group.id}}" title="Add Subgroup" class="btn btn-success btn-xs" ng-click="$ctrl.openAddSubgroupDialog(group)" ng-show="$ctrl.voAdmin">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            <button ng-if="!group.members" ng-show="$ctrl.voAdmin" title="Delete group" id="delete_group_{{group.id}}" class="btn btn-danger btn-xs" ng-click="$ctrl.openDeleteGroupDialog(group)">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="text-center">
+                <ul id="groups_pagination_bottom" uib-pagination ng-model="$ctrl.currentPage" items-per-page="$ctrl.itemsPerPage" total-items="$ctrl.totalResults" max-size="3" boundary-links="true" ng-change="$ctrl.searchGroups($ctrl.currentPage)" previous-text="&lsaquo;"
+                    next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" rotate="true">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="box-footer" ng-if="$ctrl.voAdmin">
+        <button class="btn btn-success" ng-click="$ctrl.openAddParentGroupDialog()"><i class="fa fa-plus"></i> Add Root Group</button>
+    </div>
+</div>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
 
   @Mock
   private TimeProvider timeProvider;
-  
+
   @Mock
   private OAuth2TokenEntityService tokenService;
 
@@ -559,7 +559,7 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
       throw e;
     }
   }
-  
+
   @Test(expected = IllegalArgumentException.class)
   public void testNullX509CertificateIssuerIsNotAccepted() {
     IamAccount account = cloneAccount(CICCIO_ACCOUNT);
@@ -629,9 +629,15 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
     account.linkX509Certificates(asList(TEST_X509_CERTIFICATE_1, TEST_X509_CERTIFICATE_2));
     accountService.createAccount(account);
 
-    assertTrue(account.getX509Certificates().get(0).isPrimary());
-    assertFalse(account.getX509Certificates().get(1).isPrimary());
+    for (IamX509Certificate cert : account.getX509Certificates()) {
+      if (cert.getSubjectDn().equals(TEST_X509_CERTIFICATE_SUBJECT_1)) {
+        assertTrue(cert.isPrimary());
+      }
 
+      if (cert.getSubjectDn().equals(TEST_X509_CERTIFICATE_SUBJECT_2)) {
+        assertFalse(cert.isPrimary());
+      }
+    }
   }
 
   @Test
@@ -641,8 +647,15 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
     account.linkX509Certificates(asList(TEST_X509_CERTIFICATE_1, TEST_X509_CERTIFICATE_2));
     accountService.createAccount(account);
 
-    assertFalse(account.getX509Certificates().get(0).isPrimary());
-    assertTrue(account.getX509Certificates().get(1).isPrimary());
+    for (IamX509Certificate cert : account.getX509Certificates()) {
+      if (cert.getSubjectDn().equals(TEST_X509_CERTIFICATE_SUBJECT_1)) {
+        assertFalse(cert.isPrimary());
+      }
+
+      if (cert.getSubjectDn().equals(TEST_X509_CERTIFICATE_SUBJECT_2)) {
+        assertTrue(cert.isPrimary());
+      }
+    }
 
   }
 
@@ -666,8 +679,14 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
     account.linkSshKeys(asList(TEST_SSH_KEY_1, TEST_SSH_KEY_2));
     accountService.createAccount(account);
 
-    assertTrue(account.getSshKeys().get(0).isPrimary());
-    assertFalse(account.getSshKeys().get(1).isPrimary());
+    for (IamSshKey key: account.getSshKeys()) {
+      if (key.getValue().equals(TEST_SSH_KEY_1.getValue())) {
+        assertTrue(key.isPrimary());
+      }
+      if (key.getValue().equals(TEST_SSH_KEY_2.getValue())) {
+        assertFalse(key.isPrimary());
+      }
+    }
   }
 
   @Test
@@ -677,8 +696,15 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
     account.linkSshKeys(asList(TEST_SSH_KEY_1, TEST_SSH_KEY_2));
     accountService.createAccount(account);
 
-    assertFalse(account.getSshKeys().get(0).isPrimary());
-    assertTrue(account.getSshKeys().get(1).isPrimary());
+    for (IamSshKey key: account.getSshKeys()) {
+      if (key.getValue().equals(TEST_SSH_KEY_1.getValue())) {
+        assertFalse(key.isPrimary());
+      }
+      if (key.getValue().equals(TEST_SSH_KEY_2.getValue())) {
+        assertTrue(key.isPrimary());
+      }
+    }
+   
   }
 
   @Test(expected = InvalidCredentialException.class)
@@ -727,23 +753,25 @@ public class IamAccountServiceTests extends IamAccountServiceTestSupport {
 
     when(accountRepo.findProvisionedAccountsWithLastLoginTimeBeforeTimestamp(anyObject()))
       .thenReturn(Arrays.asList(CICCIO_ACCOUNT, TEST_ACCOUNT));
-    
+
     accountService.deleteInactiveProvisionedUsersSinceTime(new Date());
-    
+
     verify(accountRepo, times(1)).delete(CICCIO_ACCOUNT);
     verify(accountRepo, times(1)).delete(TEST_ACCOUNT);
     verify(eventPublisher, times(2)).publishEvent(anyObject());
   }
-  
+
   @Test
   public void testTokensAreRemovedWhenAccountIsRemoved() {
-    OAuth2AccessTokenEntity accessToken  = mock(OAuth2AccessTokenEntity.class);
+    OAuth2AccessTokenEntity accessToken = mock(OAuth2AccessTokenEntity.class);
     OAuth2RefreshTokenEntity refreshToken = mock(OAuth2RefreshTokenEntity.class);
-    
-    when(tokenService.getAllAccessTokensForUser(CICCIO_USERNAME)).thenReturn(Sets.newHashSet(accessToken));
-    when(tokenService.getAllRefreshTokensForUser(CICCIO_USERNAME)).thenReturn(Sets.newHashSet(refreshToken));
-    
-    
+
+    when(tokenService.getAllAccessTokensForUser(CICCIO_USERNAME))
+      .thenReturn(Sets.newHashSet(accessToken));
+    when(tokenService.getAllRefreshTokensForUser(CICCIO_USERNAME))
+      .thenReturn(Sets.newHashSet(refreshToken));
+
+
     accountService.deleteAccount(CICCIO_ACCOUNT);
     verify(tokenService).revokeAccessToken(Mockito.eq(accessToken));
     verify(tokenService).revokeRefreshToken(Mockito.eq(refreshToken));

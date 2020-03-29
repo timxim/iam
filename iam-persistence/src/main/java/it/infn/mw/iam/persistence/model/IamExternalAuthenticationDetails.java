@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,9 @@ public class IamExternalAuthenticationDetails implements Serializable{
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "details")
   List<IamExternalAuthenticationAttribute> attributes = new ArrayList<>();
 
-  public IamExternalAuthenticationDetails() {}
+  public IamExternalAuthenticationDetails() {
+    // empty on purpose
+  }
 
   public void addAttribute(String name, String value) {
     IamExternalAuthenticationAttribute attr = new IamExternalAuthenticationAttribute();

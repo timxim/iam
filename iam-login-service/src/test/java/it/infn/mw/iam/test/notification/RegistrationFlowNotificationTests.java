@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package it.infn.mw.iam.test.notification;
 
 import static it.infn.mw.iam.test.util.AuthenticationUtils.adminAuthentication;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
@@ -24,7 +26,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.After;
@@ -99,10 +101,8 @@ public class RegistrationFlowNotificationTests {
 
   @Before
   public void setUp() throws InterruptedException {
-    mvc = MockMvcBuilders.webAppContextSetup(context)
-      .alwaysDo(print())
-      .apply(springSecurity())
-      .build();
+    mvc =
+        MockMvcBuilders.webAppContextSetup(context).alwaysDo(log()).apply(springSecurity()).build();
   }
 
   @After
@@ -171,7 +171,7 @@ public class RegistrationFlowNotificationTests {
 
     notificationDelivery.clearDeliveredNotifications();
 
-    mvc.perform(post("/registration/{uuid}/APPROVED", request.getUuid())
+    mvc.perform(post("/registration/approve/{uuid}", request.getUuid())
       .with(authentication(adminAuthentication()))
       .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
@@ -187,7 +187,7 @@ public class RegistrationFlowNotificationTests {
   }
 
   @Test
-  public void testRejectFlowNotifications() throws Exception {
+  public void testRejectFlowNoMotivationNotifications() throws Exception {
     String username = "reject_flow";
 
     RegistrationRequestDto request = new RegistrationRequestDto();
@@ -196,7 +196,6 @@ public class RegistrationFlowNotificationTests {
     request.setEmail("reject_flow@example.org");
     request.setUsername(username);
     request.setNotes("Some short notes...");
-
 
     String responseJson = mvc
       .perform(post("/registration/create").contentType(MediaType.APPLICATION_JSON)
@@ -239,7 +238,7 @@ public class RegistrationFlowNotificationTests {
 
     notificationDelivery.clearDeliveredNotifications();
 
-    mvc.perform(post("/registration/{uuid}/REJECTED", request.getUuid())
+    mvc.perform(post("/registration/reject/{uuid}", request.getUuid())
       .with(authentication(adminAuthentication()))
       .contentType(APPLICATION_JSON)).andExpect(status().isOk());
 
@@ -250,6 +249,80 @@ public class RegistrationFlowNotificationTests {
     message = notificationDelivery.getDeliveredNotifications().get(0);
 
     assertThat(message.getSubject(), equalTo(properties.getSubject().get("rejected")));
+    assertThat(message.getBody(),
+        not(containsString("The administrator has provided the following motivation")));
+
+  }
+
+  @Test
+  public void testRejectFlowMotivationNotifications() throws Exception {
+    String username = "reject_flow";
+
+    RegistrationRequestDto request = new RegistrationRequestDto();
+    request.setGivenname("Reject flow");
+    request.setFamilyname("Test");
+    request.setEmail("reject_flow@example.org");
+    request.setUsername(username);
+    request.setNotes("Some short notes...");
+
+    String responseJson = mvc
+      .perform(post("/registration/create").contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(request)))
+      .andExpect(MockMvcResultMatchers.status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    request = mapper.readValue(responseJson, RegistrationRequestDto.class);
+
+    notificationDelivery.sendPendingNotifications();
+
+    assertThat(notificationDelivery.getDeliveredNotifications(), hasSize(1));
+
+    IamEmailNotification message = notificationDelivery.getDeliveredNotifications().get(0);
+
+    assertThat(message.getSubject(), equalTo(properties.getSubject().get("confirmation")));
+
+    notificationDelivery.clearDeliveredNotifications();
+
+    String confirmationKey = generator.getLastToken();
+
+    mvc.perform(get("/registration/confirm/{token}", confirmationKey).contentType(APPLICATION_JSON))
+      .andExpect(status().isOk());
+
+
+    notificationDelivery.sendPendingNotifications();
+
+    assertThat(notificationDelivery.getDeliveredNotifications(), hasSize(1));
+
+    message = notificationDelivery.getDeliveredNotifications().get(0);
+
+    assertThat(message.getSubject(), equalTo(properties.getSubject().get("adminHandleRequest")));
+
+    assertThat(message.getReceivers(), hasSize(1));
+    assertThat(message.getReceivers().get(0).getEmailAddress(),
+        equalTo(properties.getAdminAddress()));
+
+
+    notificationDelivery.clearDeliveredNotifications();
+
+    mvc.perform(
+        post("/registration/reject/{uuid}", request.getUuid()).param("motivation", "We hate you")
+          .with(authentication(adminAuthentication()))
+          .contentType(APPLICATION_JSON))
+      .andExpect(status().isOk());
+
+    notificationDelivery.sendPendingNotifications();
+
+    assertThat(notificationDelivery.getDeliveredNotifications(), hasSize(1));
+
+    message = notificationDelivery.getDeliveredNotifications().get(0);
+
+    assertThat(message.getSubject(), equalTo(properties.getSubject().get("rejected")));
+    assertThat(message.getBody(),
+        containsString("The administrator has provided the following motivation"));
+    assertThat(message.getBody(),
+        containsString("We hate you"));
 
   }
 

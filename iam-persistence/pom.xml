@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@
   <parent>
     <groupId>it.infn.mw</groupId>
     <artifactId>iam-parent</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0.RELEASE</version>
   </parent>
-
   <artifactId>iam-persistence</artifactId>
   <packaging>jar</packaging>
 
@@ -41,6 +40,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -54,8 +58,15 @@
     </dependency>
 
     <dependency>
-      <groupId>org.mitre</groupId>
-      <artifactId>openid-connect-common</artifactId>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>20.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.5</version>
     </dependency>
 
     <!-- DB -->
@@ -86,12 +97,13 @@
           <useDefaultExcludes>true</useDefaultExcludes>
           <excludes>
             <exclude>**/*.sql</exclude>
+            <exclude>**/db/migration/**</exclude>
           </excludes>
         </configuration>
         <executions>
           <execution>
             <id>check-headers</id>
-            <phase>verify</phase>
+            <phase>validate</phase>
             <goals>
               <goal>check</goal>
             </goals>

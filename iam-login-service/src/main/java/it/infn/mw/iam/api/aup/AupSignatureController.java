@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package it.infn.mw.iam.api.aup;
 
 import java.util.Date;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -60,12 +62,20 @@ public class AupSignatureController {
     this.eventPublisher = publisher;
   }
 
+  private Supplier<IllegalStateException> accountNotFoundException(String message) {
+    return () -> new IllegalStateException(message);
+  }
+  
+  private Supplier<AupSignatureNotFoundError> signatureNotFound(IamAccount account){
+    return () -> new AupSignatureNotFoundError(account);
+  }
+
   @RequestMapping(value = "/iam/aup/signature", method = RequestMethod.POST)
   @PreAuthorize("hasRole('USER')")
   @ResponseStatus(code = HttpStatus.CREATED)
   public void signAup() {
     IamAccount account = accountUtils.getAuthenticatedUserAccount()
-      .orElseThrow(() -> new IllegalStateException("Account not found for authenticated user"));
+      .orElseThrow(accountNotFoundException("Account not found for authenticated user"));
 
     Date now = new Date(timeProvider.currentTimeMillis());
     IamAupSignature signature = signatureRepo.createSignatureForAccount(account, now);
@@ -77,13 +87,25 @@ public class AupSignatureController {
   @PreAuthorize("hasRole('USER')")
   public AupSignatureDTO getSignature() {
     IamAccount account = accountUtils.getAuthenticatedUserAccount()
-      .orElseThrow(() -> new IllegalStateException("Account not found for authenticated user"));
+      .orElseThrow(accountNotFoundException("Account not found for authenticated user"));
 
 
     IamAupSignature sig = signatureRepo.findSignatureForAccount(account)
-      .orElseThrow(() -> new AupSignatureNotFoundError(account));
+      .orElseThrow(signatureNotFound(account));
 
     return signatureConverter.dtoFromEntity(sig);
+  }
+
+  @RequestMapping(value = "/iam/aup/signature/{accountId}", method = RequestMethod.GET)
+  @PreAuthorize("hasRole('ADMIN') or #iam.isUser(#accountId)")
+  public AupSignatureDTO getSignatureForAccount(@PathVariable String accountId) {
+    IamAccount account = accountUtils.getByAccountId(accountId)
+      .orElseThrow(accountNotFoundException("Account not found for id: " + accountId));
+    
+    IamAupSignature sig = signatureRepo.findSignatureForAccount(account)
+        .orElseThrow(signatureNotFound(account));
+
+      return signatureConverter.dtoFromEntity(sig);
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND)

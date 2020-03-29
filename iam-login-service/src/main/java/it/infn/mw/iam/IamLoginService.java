@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import it.infn.mw.iam.core.IamBanner;
     "it.infn.mw.iam.notification",
     "it.infn.mw.iam.audit",
     "it.infn.mw.iam.actuator",
+    "it.infn.mw.iam.rcauth",
     "org.mitre.oauth2.web",
     "org.mitre.oauth2.view", 
     "org.mitre.openid.connect.web", 

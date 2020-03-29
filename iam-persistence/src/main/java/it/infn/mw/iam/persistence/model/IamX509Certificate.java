@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  */
 package it.infn.mw.iam.persistence.model;
 
+import static java.util.Objects.isNull;
+
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -27,6 +30,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -54,27 +58,33 @@ public class IamX509Certificate implements IamAccountRef, Serializable {
   private String issuerDn;
 
   @Lob
-  @Column(nullable=true, unique = true)
+  @Column(nullable = true, unique = true)
   private String certificate;
 
   @Column(name = "is_primary")
   private boolean primary;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(name="creation_time", nullable = false)
+  @Column(name = "creation_time", nullable = false)
   Date creationTime;
-  
+
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(name="last_update_time", nullable = false)
+  @Column(name = "last_update_time", nullable = false)
   Date lastUpdateTime;
-  
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "account_id")
   private IamAccount account;
 
-  public IamX509Certificate() {}
-  
-  
+  @OneToOne(optional = true, cascade = CascadeType.ALL, orphanRemoval=true)
+  @JoinColumn(name = "proxy_id")
+  private IamX509ProxyCertificate proxy;
+
+  public IamX509Certificate() {
+    // empty on purpose
+  }
+
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -186,6 +196,20 @@ public class IamX509Certificate implements IamAccountRef, Serializable {
     this.lastUpdateTime = lastUpdateTime;
   }
 
+
+  public IamX509ProxyCertificate getProxy() {
+    return proxy;
+  }
+
+
+  public void setProxy(IamX509ProxyCertificate proxy) {
+    this.proxy = proxy;
+  }
+
+
+  public boolean hasProxy() {
+    return !isNull(getProxy());
+  }
   @Override
   public String toString() {
     return "IamX509Certificate [label=" + label + ", subjectDn=" + subjectDn + ", issuerDn="

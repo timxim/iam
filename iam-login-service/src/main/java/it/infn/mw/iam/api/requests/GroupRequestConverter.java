@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,13 @@ public class GroupRequestConverter {
 
   public GroupRequestDto fromEntity(IamGroupRequest iamGroupRequest) {
     GroupRequestDto groupRequest = new GroupRequestDto();
+    
     groupRequest.setUuid(iamGroupRequest.getUuid());
     groupRequest.setUsername(iamGroupRequest.getAccount().getUsername());
+    groupRequest.setUserUuid(iamGroupRequest.getAccount().getUuid());
+    groupRequest.setUserFullName(iamGroupRequest.getAccount().getUserInfo().getName());
     groupRequest.setGroupName(iamGroupRequest.getGroup().getName());
+    groupRequest.setGroupUuid(iamGroupRequest.getGroup().getUuid());
     groupRequest.setStatus(iamGroupRequest.getStatus().name());
     groupRequest.setNotes(iamGroupRequest.getNotes());
     groupRequest.setMotivation(iamGroupRequest.getMotivation());

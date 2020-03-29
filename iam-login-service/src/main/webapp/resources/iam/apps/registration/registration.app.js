@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,4 +15,42 @@
  */
 'use strict';
 
-angular.module('registrationApp', ['ui.bootstrap', 'ngCookies']);
+var app = angular.module('registrationApp', ['ui.bootstrap', 'ngCookies']);
+
+// app.config(function simulateNetworkLatency($httpProvider) {
+//     $httpProvider.interceptors.push(httpDelay);
+
+//     function httpDelay($timeout, $q) {
+//         var delayInMilliseconds = 2850;
+
+//         // Return our interceptor configuration.
+//         return ({
+//             response: response,
+//             responseError: responseError
+//         });
+
+//         function response(response) {
+//             var deferred = $q.defer();
+//             $timeout(
+//                 function () {
+//                     deferred.resolve(response);
+//                 },
+//                 delayInMilliseconds,
+//                 false
+//             );
+//             return (deferred.promise);
+//         }
+
+//         function responseError(response) {
+//             var deferred = $q.defer();
+//             $timeout(
+//                 function () {
+//                     deferred.reject(response);
+//                 },
+//                 delayInMilliseconds,
+//                 false
+//             );
+//             return (deferred.promise);
+//         }
+//     }
+// });

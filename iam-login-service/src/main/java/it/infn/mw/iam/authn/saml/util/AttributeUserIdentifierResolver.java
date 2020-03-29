@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package it.infn.mw.iam.authn.saml.util;
+
+import static java.lang.String.format;
 
 import org.springframework.security.saml.SAMLCredential;
 
@@ -36,7 +38,7 @@ public class AttributeUserIdentifierResolver extends AbstractSamlUserIdentifierR
 
     if (attributeValue == null) {
       return SamlUserIdentifierResolutionResult
-        .resolutionFailure(String.format("Attribute '%s:%s' not found in assertion", attribute.getAlias(),
+        .resolutionFailure(format("Attribute '%s:%s' not found in assertion", attribute.getAlias(),
             attribute.getAttributeName()));
     }
 
@@ -48,5 +50,4 @@ public class AttributeUserIdentifierResolver extends AbstractSamlUserIdentifierR
     return SamlUserIdentifierResolutionResult.resolutionSuccess(samlId);
 
   }
-
 }

@@ -2,8 +2,9 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1874791.svg)](https://doi.org/10.5281/zenodo.1874791)
 [![travis-build-tatus](https://travis-ci.org/indigo-iam/iam.svg?branch=develop)](https://travis-ci.org/indigo-iam/iam)
-![sonarqube-qg](https://sonar.cloud.cnaf.infn.it/api/badges/gate?key=it.infn.mw%3Aiam-parent)
-![sonarqube-coverage](https://sonar.cloud.cnaf.infn.it/api/badges/measure?key=it.infn.mw%3Aiam-parent&metric=coverage)
+[![sonarqube-qg](https://sonarcloud.io/api/project_badges/measure?project=indigo-iam_iam&metric=alert_status)](https://sonarcloud.io/dashboard?id=indigo-iam_iam)
+[![sonarqube-coverage](https://sonarcloud.io/api/project_badges/measure?project=indigo-iam_iam&metric=coverage)](https://sonarcloud.io/dashboard?id=indigo-iam_iam)
+[![sonarqube-maintainability](https://sonarcloud.io/api/project_badges/measure?project=indigo-iam_iam&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=indigo-iam_iam)
 
 The INDIGO IAM is an Identity and Access Management service first developed in the
 context of the [INDIGO-Datacloud H2020 project][indigo-datacloud].

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,23 +78,23 @@ public class DefaultScopePolicyPDP implements ScopePolicyPDP {
 
     protected void applyScopePolicy(String scope, IamScopePolicy p, IamAccount a) {
       LOG.debug("Evaluating {} policy #{} ('{}') against scope '{}' for account '{}'",
-          new Object[] {p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername()});
+          p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername());
 
       if (!p.appliesToScope(scope)) {
         LOG.debug("{} policy #{} ('{}') NOT APPLICABLE to scope '{}' for account '{}'",
-            new Object[] {p.getPolicyType(), p.getId(), p.getDescription(), scope,
-                a.getUsername()});
+            p.getPolicyType(), p.getId(), p.getDescription(), scope,
+                a.getUsername());
         return;
       }
 
       if (p.isPermit()) {
-        LOG.debug("{} policy #{} ('{}') PERMITS scope '{}' for account '{}'", new Object[] {
-            p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername()});
+        LOG.debug("{} policy #{} ('{}') PERMITS scope '{}' for account '{}'", 
+            p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername());
         permitScope(scope);
 
       } else {
-        LOG.debug("{} policy #{} ('{}') DENIES scope '{}' for account '{}'", new Object[] {
-            p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername()});
+        LOG.debug("{} policy #{} ('{}') DENIES scope '{}' for account '{}'",
+            p.getPolicyType(), p.getId(), p.getDescription(), scope, a.getUsername());
         denyScope(scope);
       }
     }
@@ -104,7 +104,7 @@ public class DefaultScopePolicyPDP implements ScopePolicyPDP {
     }
 
     public boolean hasUnprocessedScopes() {
-      return scopeStatus.entrySet().stream().filter(this::entryIsUnprocessed).findAny().isPresent();
+      return scopeStatus.entrySet().stream().anyMatch(this::entryIsUnprocessed);
     }
 
     public Set<String> getAllowedScopes() {

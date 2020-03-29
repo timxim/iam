@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,13 +179,16 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
   public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
 
     clients.withClientDetails(clientDetailsService);
+  
   }
 
   @Override
   public void configure(final AuthorizationServerSecurityConfigurer security) throws Exception {
 
     security.allowFormAuthenticationForClients();
+    
 
   }
 
+  
 }

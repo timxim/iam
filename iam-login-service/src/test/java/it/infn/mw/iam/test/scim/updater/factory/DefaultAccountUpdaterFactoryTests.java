@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package it.infn.mw.iam.test.scim.updater.factory;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_ADD_OIDC_ID;
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_ADD_SAML_ID;
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_ADD_SSH_KEY;
@@ -31,6 +32,7 @@ import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_PICTUR
 import static it.infn.mw.iam.api.scim.updater.UpdaterType.ACCOUNT_REPLACE_USERNAME;
 import static it.infn.mw.iam.authn.saml.util.Saml2Attribute.EPUID;
 import static it.infn.mw.iam.test.X509Utils.x509Certs;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.isIn;
@@ -52,6 +54,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import it.infn.mw.iam.api.scim.converter.OidcIdConverter;
 import it.infn.mw.iam.api.scim.converter.SamlIdConverter;
@@ -202,7 +205,7 @@ public class DefaultAccountUpdaterFactoryTests {
 
     assertThat(updaters.get(0).getType(), equalTo(ACCOUNT_ADD_SSH_KEY));
     assertThat(updaters.get(0).update(), equalTo(true));
-    assertThat(account.getSshKeys().get(0), equalTo(new IamSshKey(NEW)));
+    assertThat(account.getSshKeys(), hasItem(new IamSshKey(NEW)));
 
   }
 
@@ -266,10 +269,10 @@ public class DefaultAccountUpdaterFactoryTests {
     assertThat(account.getUserInfo().getPicture(), equalTo(NEW));
     assertThat(account.getUserInfo().getEmail(), equalTo(NEW));
     assertThat(encoder.matches(NEW, account.getPassword()), equalTo(true));
-    assertThat(account.getOidcIds().get(0), equalTo(new IamOidcId(NEW, NEW)));
-    assertThat(account.getSamlIds().get(0), equalTo(newSamlId));
+    assertThat(account.getOidcIds(), hasItem(new IamOidcId(NEW, NEW)));
+    assertThat(account.getSamlIds(), hasItem(newSamlId));
 
-    assertThat(account.getSshKeys().get(0), equalTo(new IamSshKey(NEW)));
+    assertThat(account.getSshKeys(), hasItem(new IamSshKey(NEW)));
 
   }
 
@@ -330,10 +333,11 @@ public class DefaultAccountUpdaterFactoryTests {
         Lists.newArrayList(ACCOUNT_REMOVE_OIDC_ID, ACCOUNT_REMOVE_SAML_ID, ACCOUNT_REMOVE_SSH_KEY);
 
     IamAccount account = newAccount(OLD);
-    account.setOidcIds(Lists.newArrayList(new IamOidcId(OLD, OLD)));
+    account.setOidcIds(newHashSet(new IamOidcId(OLD, OLD)));
     account.setSamlIds(
-        Lists.newArrayList(new IamSamlId(OLD, Saml2Attribute.EPUID.getAttributeName(), OLD)));
-    account.setSshKeys(Lists.newArrayList(new IamSshKey(OLD)));
+        newHashSet(new IamSamlId(OLD, Saml2Attribute.EPUID.getAttributeName(), OLD)));
+        
+    account.setSshKeys(Sets.newHashSet(new IamSshKey(OLD)));
 
     IamSamlId oldId = new IamSamlId(OLD, Saml2Attribute.EPUID.getAttributeName(), OLD);
 

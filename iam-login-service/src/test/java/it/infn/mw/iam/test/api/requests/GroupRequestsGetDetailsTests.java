@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,21 +54,23 @@ public class GroupRequestsGetDetailsTests extends GroupRequestsTestUtils {
   private WebApplicationContext context;
 
   private MockMvc mvc;
-  private GroupRequestDto request;
 
   @Before
   public void setup() {
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
 
-    request = savePendingGroupRequest(TEST_USERNAME, TEST_GROUPNAME);
+    
   }
 
   @Test
   @WithMockUser(roles = {"ADMIN"})
   public void getGroupRequestDetailsAsAdmin() throws Exception {
+    
+    GroupRequestDto request = savePendingGroupRequest(TEST_100_USERNAME, TEST_001_GROUPNAME);
+    
     // @formatter:off
     mvc.perform(get(GET_DETAILS_URL, request.getUuid()))
       .andExpect(status().isOk())
@@ -81,8 +83,10 @@ public class GroupRequestsGetDetailsTests extends GroupRequestsTestUtils {
   }
 
   @Test
-  @WithMockUser(roles = {"USER"}, username = TEST_USERNAME)
+  @WithMockUser(roles = {"USER"}, username = TEST_100_USERNAME)
   public void getGroupRequestDetailsAsUser() throws Exception {
+    GroupRequestDto request = savePendingGroupRequest(TEST_100_USERNAME, TEST_001_GROUPNAME);
+    
     // @formatter:off
     mvc.perform(get(GET_DETAILS_URL, request.getUuid()))
       .andExpect(status().isOk())
@@ -94,9 +98,9 @@ public class GroupRequestsGetDetailsTests extends GroupRequestsTestUtils {
   }
 
   @Test
-  @WithMockUser(roles = {"USER"}, username = TEST_USERNAME)
+  @WithMockUser(roles = {"USER"}, username = TEST_100_USERNAME)
   public void getGroupRequestDetailsOfAnotherUser() throws Exception {
-    request = savePendingGroupRequest("test_101", TEST_GROUPNAME);
+    GroupRequestDto request = savePendingGroupRequest("test_101", TEST_001_GROUPNAME);
     // @formatter:off
     mvc.perform(get(GET_DETAILS_URL, request.getUuid()))
       .andExpect(status().isForbidden());
@@ -106,6 +110,7 @@ public class GroupRequestsGetDetailsTests extends GroupRequestsTestUtils {
   @Test
   @WithAnonymousUser
   public void getGroupRequestDetailsAsAnonymous() throws Exception {
+    GroupRequestDto request = savePendingGroupRequest(TEST_100_USERNAME, TEST_001_GROUPNAME);
     // @formatter:off
     mvc.perform(get(GET_DETAILS_URL, request.getUuid()))
       .andExpect(status().isUnauthorized())
@@ -129,6 +134,7 @@ public class GroupRequestsGetDetailsTests extends GroupRequestsTestUtils {
   @Test
   @WithMockUser(roles = {"ADMIN", "USER"})
   public void getGroupRequestDetailsAsUserWithBothRoles() throws Exception {
+    GroupRequestDto request = savePendingGroupRequest(TEST_100_USERNAME, TEST_001_GROUPNAME);
     // @formatter:off
     mvc.perform(get(GET_DETAILS_URL, request.getUuid()))
       .andExpect(status().isOk())

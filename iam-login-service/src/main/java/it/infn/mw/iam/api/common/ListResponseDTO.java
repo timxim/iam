@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package it.infn.mw.iam.api.common;
 
 import java.util.List;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -80,7 +81,7 @@ public class ListResponseDTO<T> {
     private Integer startIndex = null;
     private List<T> resources = null;
 
-    public <S> Builder<T> fromPage(Page<S> page, OffsetPageable op) {
+    public <S> Builder<T> fromPage(Page<S> page, Pageable op) {
       this.totalResults = page.getTotalElements();
       this.itemsPerPage = page.getNumberOfElements();
       this.startIndex = op.getOffset() + 1;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package it.infn.mw.iam.config.saml;
 
 import static java.lang.Boolean.FALSE;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -26,11 +27,85 @@ import javax.validation.constraints.Min;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 @ConfigurationProperties(prefix = "saml.jit-account-provisioning")
 public class IamSamlJITAccountProvisioningProperties {
 
+  public enum UsernameMappingPolicy {
+    randomUuidPolicy,
+    samlIdPolicy,
+    attributeValuePolicy;
+  }
+  
+  public static class EntityAttributeMappingProperties {
+    
+    String entityIds;
+    
+    AttributeMappingProperties mapping;
+
+    public String getEntityIds() {
+      return entityIds;
+    }
+
+    public void setEntityIds(String entityIds) {
+      this.entityIds = entityIds;
+    }
+
+    public AttributeMappingProperties getMapping() {
+      return mapping;
+    }
+
+    public void setMapping(AttributeMappingProperties mapping) {
+      this.mapping = mapping;
+    }
+  }
+  
+  
+  public static class AttributeMappingProperties {
+    
+    UsernameMappingPolicy usernameMappingPolicy = UsernameMappingPolicy.samlIdPolicy;
+    
+    String emailAttribute = "mail";
+    String firstNameAttribute = "givenName";
+    String familyNameAttribute = "sn";
+    String usernameAttribute;
+    
+    public String getEmailAttribute() {
+      return emailAttribute;
+    }
+    public void setEmailAttribute(String emailAttribute) {
+      this.emailAttribute = emailAttribute;
+    }
+    public String getFirstNameAttribute() {
+      return firstNameAttribute;
+    }
+    public void setFirstNameAttribute(String firstNameAttribute) {
+      this.firstNameAttribute = firstNameAttribute;
+    }
+    public String getFamilyNameAttribute() {
+      return familyNameAttribute;
+    }
+    public void setFamilyNameAttribute(String familyNameAttribute) {
+      this.familyNameAttribute = familyNameAttribute;
+    }
+    
+    public String getUsernameAttribute() {
+      return usernameAttribute;
+    }
+    
+    public void setUsernameAttribute(String usernameAttribute) {
+      this.usernameAttribute = usernameAttribute;
+    }
+    public UsernameMappingPolicy getUsernameMappingPolicy() {
+      return usernameMappingPolicy;
+    }
+    public void setUsernameMappingPolicy(UsernameMappingPolicy usernameMappingPolicy) {
+      this.usernameMappingPolicy = usernameMappingPolicy;
+    }
+  }
+  
   private Boolean enabled = FALSE;
   private String trustedIdps = "all";
   private Boolean cleanupTaskEnabled = FALSE;
@@ -40,6 +115,10 @@ public class IamSamlJITAccountProvisioningProperties {
 
   @Min(1)
   private Integer inactiveAccountLifetimeDays = 15;
+  
+  private AttributeMappingProperties defaultMapping = new AttributeMappingProperties();
+  
+  private List<EntityAttributeMappingProperties> entityMapping = Lists.newArrayList();
 
   public Boolean getEnabled() {
     return enabled;
@@ -95,5 +174,21 @@ public class IamSamlJITAccountProvisioningProperties {
     }
 
     return Optional.of(trustedIdpIds);
+  }
+
+  public AttributeMappingProperties getDefaultMapping() {
+    return defaultMapping;
+  }
+
+  public void setDefaultMapping(AttributeMappingProperties defaultMapping) {
+    this.defaultMapping = defaultMapping;
+  }
+  
+  public List<EntityAttributeMappingProperties> getEntityMapping() {
+    return entityMapping;
+  }
+  
+  public void setEntityMapping(List<EntityAttributeMappingProperties> entityMapping) {
+    this.entityMapping = entityMapping;
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,25 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -69,11 +72,11 @@ public class IamAccount implements Serializable {
   private boolean active;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name="creationtime", nullable = false)
   private Date creationTime;
 
   @Temporal(TemporalType.TIMESTAMP)
-  @Column(nullable = false)
+  @Column(name="lastupdatetime", nullable = false)
   private Date lastUpdateTime;
 
   @Column(name = "provisioned", nullable = false)
@@ -87,7 +90,7 @@ public class IamAccount implements Serializable {
   @Column(name = "last_login_time", nullable = true)
   private Date lastLoginTime;
 
-  @ManyToMany
+  @ManyToMany(fetch=FetchType.EAGER)
   @JoinTable(name = "iam_account_authority",
       joinColumns = @JoinColumn(name = "account_id", referencedColumnName = "id"),
       inverseJoinColumns = @JoinColumn(name = "authority_id", referencedColumnName = "id"))
@@ -97,23 +100,24 @@ public class IamAccount implements Serializable {
   @JoinTable(name = "iam_account_group",
       joinColumns = @JoinColumn(name = "account_id", referencedColumnName = "id"),
       inverseJoinColumns = @JoinColumn(name = "group_id", referencedColumnName = "id"))
+  @OrderBy("name")
   private Set<IamGroup> groups = new HashSet<>();
 
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER,
       orphanRemoval = true)
-  private List<IamSamlId> samlIds = new LinkedList<>();
+  private Set<IamSamlId> samlIds = new HashSet<>();
 
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER,
       orphanRemoval = true)
-  private List<IamOidcId> oidcIds = new LinkedList<>();
+  private Set<IamOidcId> oidcIds = new HashSet<>();
 
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER,
       orphanRemoval = true)
-  private List<IamSshKey> sshKeys = new LinkedList<>();
+  private Set<IamSshKey> sshKeys = new LinkedHashSet<>();
 
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER,
       orphanRemoval = true)
-  private List<IamX509Certificate> x509Certificates = new LinkedList<>();
+  private Set<IamX509Certificate> x509Certificates = new HashSet<>();
 
   @Column(name = "confirmation_key", unique = true, length = 36)
   private String confirmationKey;
@@ -131,7 +135,21 @@ public class IamAccount implements Serializable {
   private IamAupSignature aupSignature;
 
   @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
-  private Set<IamGroupRequest> groupRequests;
+  private Set<IamGroupRequest> groupRequests = new HashSet<>();
+  
+  @ElementCollection
+  @CollectionTable(
+      indexes= {@Index(columnList="name"), @Index(columnList="name,val")},
+      name="iam_account_attrs",
+     joinColumns=@JoinColumn(name="account_id"))
+  private Set<IamAttribute> attributes = new HashSet<>();
+  
+  @ElementCollection
+  @CollectionTable(
+      indexes= {@Index(columnList="prefix,name,val"), @Index(columnList="prefix,name")},
+      name="iam_account_labels",
+     joinColumns=@JoinColumn(name="account_id"))
+  private Set<IamLabel> labels = new HashSet<>();
 
   public IamAccount() {
     // empty constructor
@@ -242,45 +260,45 @@ public class IamAccount implements Serializable {
     this.active = active;
   }
 
-  public List<IamSamlId> getSamlIds() {
+  public Set<IamSamlId> getSamlIds() {
 
     return samlIds;
   }
 
-  public void setSamlIds(List<IamSamlId> samlIds) {
+  public void setSamlIds(Set<IamSamlId> samlIds) {
 
     Preconditions.checkNotNull(samlIds);
     this.samlIds = samlIds;
   }
 
-  public List<IamOidcId> getOidcIds() {
+  public Set<IamOidcId> getOidcIds() {
 
     return oidcIds;
   }
 
-  public void setOidcIds(List<IamOidcId> oidcIds) {
+  public void setOidcIds(Set<IamOidcId> oidcIds) {
 
     Preconditions.checkNotNull(oidcIds);
     this.oidcIds = oidcIds;
   }
 
-  public List<IamSshKey> getSshKeys() {
+  public Set<IamSshKey> getSshKeys() {
 
     return sshKeys;
   }
 
-  public void setSshKeys(List<IamSshKey> sshKeys) {
+  public void setSshKeys(Set<IamSshKey> sshKeys) {
 
     Preconditions.checkNotNull(sshKeys);
     this.sshKeys = sshKeys;
   }
 
-  public List<IamX509Certificate> getX509Certificates() {
+  public Set<IamX509Certificate> getX509Certificates() {
 
     return x509Certificates;
   }
 
-  public void setX509Certificates(List<IamX509Certificate> x509Certificates) {
+  public void setX509Certificates(Set<IamX509Certificate> x509Certificates) {
 
     Preconditions.checkNotNull(x509Certificates);
     this.x509Certificates = x509Certificates;
@@ -533,6 +551,22 @@ public class IamAccount implements Serializable {
 
   public void setGroupRequest(Set<IamGroupRequest> groupRequests) {
     this.groupRequests = groupRequests;
+  }
+  
+  public Set<IamAttribute> getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(Set<IamAttribute> attributes) {
+    this.attributes = attributes;
+  }
+  
+  public Set<IamLabel> getLabels() {
+    return labels;
+  }
+  
+  public void setLabels(Set<IamLabel> labels) {
+    this.labels = labels;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import it.infn.mw.iam.config.saml.IamSamlProperties;
-import it.infn.mw.iam.core.IamProperties;
+import it.infn.mw.iam.rcauth.RCAuthProperties;
 
 @Component
 public class IamViewInfoInterceptor extends HandlerInterceptorAdapter {
 
   public static final String LOGIN_PAGE_CONFIGURATION_KEY = "loginPageConfiguration";
-  public static final String IAM_PROPERTIES_KEY = "iamProperties";
+  public static final String ORGANISATION_NAME_KEY = "iamOrganisationName";
   public static final String IAM_SAML_PROPERTIES_KEY = "iamSamlProperties";
+  public static final String IAM_OIDC_PROPERTIES_KEY = "iamOidcProperties";
+  public static final String IAM_VERSION_KEY = "iamVersion";
+  public static final String GIT_COMMIT_ID_KEY = "gitCommitId";
+  public static final String SIMULATE_NETWORK_LATENCY_KEY = "simulateNetworkLatency";
+  public static final String RCAUTH_ENABLED_KEY = "iamRcauthEnabled";
 
   @Value("${iam.version}")
   String iamVersion;
@@ -39,26 +44,33 @@ public class IamViewInfoInterceptor extends HandlerInterceptorAdapter {
   @Value("${git.commit.id.abbrev}")
   String gitCommitId;
 
+  @Value("${iam.organisation.name}")
+  String organisationName;
+  
   @Autowired
   LoginPageConfiguration loginPageConfiguration;
 
   @Autowired
-  IamProperties properties;
-
-  @Autowired
   IamSamlProperties samlProperties;
   
+  @Autowired
+  RCAuthProperties rcAuthProperties;
+
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    
+    request.setAttribute(IAM_VERSION_KEY, iamVersion);
+    request.setAttribute(GIT_COMMIT_ID_KEY, gitCommitId);
 
-    request.setAttribute("iamVersion", iamVersion);
-    request.setAttribute("gitCommitId", gitCommitId);
-
+    request.setAttribute(ORGANISATION_NAME_KEY, organisationName);
+    
     request.setAttribute(LOGIN_PAGE_CONFIGURATION_KEY, loginPageConfiguration);
-    request.setAttribute(IAM_PROPERTIES_KEY, properties);
+    
     request.setAttribute(IAM_SAML_PROPERTIES_KEY, samlProperties);
-
+    
+    request.setAttribute(RCAUTH_ENABLED_KEY, rcAuthProperties.isEnabled());
+    
     return true;
   }
 

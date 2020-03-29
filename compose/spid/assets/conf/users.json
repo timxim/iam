@@ -1,0 +1,19 @@
+{
+    "andrea": {
+        "sp": null,
+        "attrs": {
+            "placeOfBirth": "Cesena",
+            "companyName": "INFN",
+            "dateOfBirth": "15-09-1975",
+            "name": "Andrea",
+            "idCard": "12367862316381",
+            "email": "andrea.ceccanti@cnaf.infn.it",
+            "fiscalNumber": "TINIT-CCCNDR75P15C573N",
+            "gender": "M",
+            "spidCode": "1234",
+            "familyName": "Ceccanti",
+            "countyOfBirth": "ITALY"
+        },
+        "pwd": "password"
+    }
+}

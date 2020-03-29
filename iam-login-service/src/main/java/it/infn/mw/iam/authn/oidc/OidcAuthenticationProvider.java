@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 
+import it.infn.mw.iam.authn.common.config.AuthenticationValidator;
 import it.infn.mw.iam.authn.oidc.service.OidcUserDetailsService;
 
 public class OidcAuthenticationProvider extends OIDCAuthenticationProvider {
@@ -35,11 +36,14 @@ public class OidcAuthenticationProvider extends OIDCAuthenticationProvider {
   public static final Logger LOG = LoggerFactory.getLogger(OidcAuthenticationProvider.class);
 
   private final OidcUserDetailsService userDetailsService;
+  private final AuthenticationValidator<OIDCAuthenticationToken> tokenValidatorService;
 
   @Autowired
-  public OidcAuthenticationProvider(OidcUserDetailsService userDetailsService) {
+  public OidcAuthenticationProvider(OidcUserDetailsService userDetailsService,
+      AuthenticationValidator<OIDCAuthenticationToken> tokenValidatorService) {
 
     this.userDetailsService = userDetailsService;
+    this.tokenValidatorService = tokenValidatorService;
   }
 
   private Date getExpirationTimeFromOIDCAuthenticationToken(OIDCAuthenticationToken token) {
@@ -59,11 +63,13 @@ public class OidcAuthenticationProvider extends OIDCAuthenticationProvider {
       return null;
     }
 
+    tokenValidatorService.validateAuthentication(token);
+
     User user = (User) userDetailsService.loadUserByOIDC(token);
 
     return new OidcExternalAuthenticationToken(token,
-	getExpirationTimeFromOIDCAuthenticationToken(token), user.getUsername(), null,
-	user.getAuthorities());
+        getExpirationTimeFromOIDCAuthenticationToken(token), user.getUsername(), null,
+        user.getAuthorities());
   }
 
 }

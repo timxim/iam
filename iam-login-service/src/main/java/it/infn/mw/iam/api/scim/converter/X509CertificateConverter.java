@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@ public class X509CertificateConverter
     implements Converter<ScimX509Certificate, IamX509Certificate> {
 
   private final X509CertificateChainParser parser;
-  
-  
+
+
   @Autowired
   public X509CertificateConverter(X509CertificateChainParser parser) {
     this.parser = parser;
   }
 
-    private String principalAsRfc2253String(Principal principal) {
+  private String principalAsRfc2253String(Principal principal) {
     return X500NameUtils.getPortableRFC2253Form(principal.getName());
   }
 
@@ -52,7 +52,7 @@ public class X509CertificateConverter
 
     cert.setSubjectDn(principalAsRfc2253String(leafCert.getSubjectX500Principal()));
     cert.setIssuerDn(principalAsRfc2253String(leafCert.getIssuerX500Principal()));
-    
+
     cert.setCertificate(pemString);
     return cert;
   }
@@ -88,6 +88,8 @@ public class X509CertificateConverter
       .issuerDn(entity.getIssuerDn())
       .pemEncodedCertificate(entity.getCertificate())
       .primary(entity.isPrimary())
+      .hasProxyCertificate(entity.hasProxy())
+      .proxyExpirationTime(entity.hasProxy() ? entity.getProxy().getExpirationTime() : null)
       .build();
   }
 

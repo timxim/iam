@@ -1,5 +1,5 @@
 #
-# Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+# Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ server:
 
   use-forward-headers: ${IAM_USE_FORWARDED_HEADERS:false}
 
-spring:
+spring: 
   profiles:
     active: h2-test
-
   application:
     name: INDIGO IAM
     
@@ -50,9 +49,14 @@ iam:
   host: ${IAM_HOST:localhost}
   baseUrl: ${IAM_BASE_URL:http://${iam.host}:8080}
   issuer: ${IAM_ISSUER:http://${iam.host}:8080}
-  logoImageUrl: ${IAM_LOGO_URL:resources/images/indigo-logo.png}
   topbarTitle: ${IAM_TOPBAR_TITLE:INDIGO IAM for ${iam.organisation.name}}
-
+  
+  logo:
+    url: ${IAM_LOGO_URL:resources/images/indigo-logo.png}
+    dimension: ${IAM_LOGO_DIMENSION:200}
+    height: ${IAM_LOGO_HEIGHT:150}
+    width: ${IAM_LOGO_WIDTH:200}
+  
   token:
     # This is the registration access token lifetime
     lifetime: ${IAM_REGISTRATION_TOKEN_LIFETIME:-1}  
@@ -73,32 +77,21 @@ iam:
 
   access_token:
     include_authn_info: ${IAM_ACCESS_TOKEN_INCLUDE_AUTHN_INFO:false}
+    include_scope: ${IAM_ACCESS_TOKEN_INCLUDE_SCOPE:false}
+    include_nbf: ${IAM_ACCESS_TOKEN_INCLUDE_NBF:false}
 
+  superuser:
+    username: ${IAM_SUPERUSER_USERNAME:superuser}
+    password: ${IAM_SUPERUSER_PASSWORD:superpassword}
+  
+  local-resources:
+    enable: ${IAM_LOCAL_RESOURCES_ENABLE:false}
+    location: ${IAM_LOCAL_RESOURCES_LOCATION:file:/indigo-iam/local-resources}
+    
 x509:
   trustAnchorsDir: ${IAM_X509_TRUST_ANCHORS_DIR:/etc/grid-security/certificates}
   trustAnchorsRefreshMsec: ${IAM_X509_TRUST_ANCHORS_REFRESH:14400}
-
-google:
-    issuer: https://accounts.google.com
-
-    client:
-      clientId: ${IAM_GOOGLE_CLIENT_ID:define_me_please}
-      clientSecret: ${IAM_GOOGLE_CLIENT_SECRET:define_me_please}
-      redirectUris: ${IAM_GOOGLE_CLIENT_REDIRECT_URIS:${iam.baseUrl}/openid_connect_login}
-      scope: openid,profile,email,address,phone
-
-github:
-  client:
-    clientId: ${IAM_GITHUB_CLIENT_ID:define_me_please}
-    clientSecret: ${IAM_GITHUB_CLIENT_SECRET:define_me_please}
-    accessTokenUri: https://github.com/login/oauth/access_token
-    userAuthorizationUri: https://github.com/login/oauth/authorize
-    clientAuthenticationScheme: form
-    preEstablishedRedirectUri: http://${iam.baseUrl}/gh_login
-    useCurrentUri: false
-    scope: user:email
-  resource:
-    userInfoUri: https://api.github.com/user
+  tlsVersion: ${IAM_X509_TLS_VERSION:TLSv1}
     
 notification:
   disable: ${IAM_NOTIFICATION_DISABLE:false}
@@ -106,6 +99,9 @@ notification:
   taskDelay: ${IAM_NOTIFICATION_TASK_DELAY:5000}
   cleanupAge: ${IAM_NOTIFICATION_CLEANUP_AGE:30}
   adminAddress: ${IAM_NOTIFICATION_ADMIN_ADDRESS:indigo-alerts@localhost}
+  admin-notification-policy: ${IAM_NOTIFICATION_ADMIN_NOTIFICATION_POLICY:notify-address}
+  group-manager-notification-policy: ${IAM_NOTIFICATION_GROUP_MANAGER_NOTIFICATION_POLICY:notify-gms-and-admins}
+  
   subject:
     confirmation: Confirm your ${iam.organisation.name} registration request
     activated: Your ${iam.organisation.name} account is now active
@@ -130,3 +126,30 @@ health:
     
 accountLinking:
   disable: ${IAM_ACCOUNT_LINKING_DISABLE:false}
+
+clientRegistration:
+  allow-for: ${IAM_CLIENT_REGISTRATION_ALLOW_FOR:ANYONE}
+  
+endpoints:
+  enabled: false
+  info:
+    enabled: true
+  health:
+    enabled: true
+  metrics:
+    enabled: true
+
+rcauth:
+  enabled: ${IAM_RCAUTH_ENABLED:false}
+  label: ${IAM_RCAUTH_LABEL:RCAuth.eu online CA}
+  issuer: ${IAM_RCAUTH_ISSUER}
+  client-id: ${IAM_RCAUTH_CLIENT_ID}
+  client-secret: ${IAM_RCAUTH_CLIENT_SECRET}
+  idp-hint: ${IAM_RCAUTH_IDP_HINT}
+  key-size: ${IAM_RCAUTH_KEY_SIZE:2048}
+  cert-lifetime-seconds: ${IAM_RCAUTH_CERT_LIFETIME_SECONDS:259200}
+
+proxycert:
+  key-size: ${IAM_PROXYCERT_KEY_SIZE:2048}
+  max-lifetime-seconds: ${IAM_PROXYCERT_MAX_LIFETIME_SECONDS:43200}
+  

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,9 @@ import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml2.core.impl.AuthnStatementBuilder;
 import org.opensaml.xml.XMLObjectBuilderFactory;
 import org.opensaml.xml.io.MarshallingException;
+import org.opensaml.xml.schema.XSAny;
 import org.opensaml.xml.schema.XSString;
+import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.opensaml.xml.security.SecurityException;
 import org.opensaml.xml.security.credential.Credential;
@@ -60,6 +62,7 @@ import org.opensaml.xml.signature.impl.SignatureBuilder;
 
 import com.google.common.collect.Lists;
 
+import it.infn.mw.iam.authn.saml.util.Saml2Attribute;
 import it.infn.mw.iam.authn.saml.util.SamlAttributeNames;
 
 public class SamlAssertionBuilder {
@@ -184,6 +187,32 @@ public class SamlAssertionBuilder {
     return as;
   }
 
+  private Attribute buildEPTIDAttribute() {
+    Attribute attr = attributeBuilder.buildObject();
+    attr.setName(Saml2Attribute.EPTID.getAttributeName());
+    attr.setNameFormat(Attribute.URI_REFERENCE);
+    
+    @SuppressWarnings("unchecked")
+    SAMLObjectBuilder<NameID> niBuilder =
+    (SAMLObjectBuilder<NameID>) builderFactory.getBuilder(NameID.DEFAULT_ELEMENT_NAME);
+    
+    
+    NameID nid = niBuilder.buildObject();
+    nid.setValue(nameId);
+    nid.setFormat(nameIdFormat);
+    
+    XMLObjectBuilderFactory bf = Configuration.getBuilderFactory();
+    XSAnyBuilder builder = (XSAnyBuilder) bf.getBuilder(XSAny.TYPE_NAME);
+    XSAny attrVal = builder.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME);
+    
+    
+    attrVal.getUnknownXMLObjects().add(nid);
+    attr.getAttributeValues().add(attrVal);
+    
+    return attr;
+  }
+  
+  
   private Attribute buildStringAttribute(String name, String value) {
     Attribute attr = attributeBuilder.buildObject();
     attr.setName(name);
@@ -199,6 +228,11 @@ public class SamlAssertionBuilder {
 
     attr.getAttributeValues().add(xsString);
     return attr;
+  }
+  
+  public SamlAssertionBuilder eptid() {
+    attributes.add(buildEPTIDAttribute());
+    return this;
   }
 
   public SamlAssertionBuilder eppn(String eppn) {
@@ -294,24 +328,27 @@ public class SamlAssertionBuilder {
 
   }
 
-  private Subject buildSubject() {
-
+  private NameID buildNameID() {
     @SuppressWarnings("unchecked")
     SAMLObjectBuilder<NameID> niBuilder =
-	(SAMLObjectBuilder<NameID>) builderFactory.getBuilder(NameID.DEFAULT_ELEMENT_NAME);
+    (SAMLObjectBuilder<NameID>) builderFactory.getBuilder(NameID.DEFAULT_ELEMENT_NAME);
 
     NameID nid = niBuilder.buildObject();
     nid.setValue(nameId);
     nid.setFormat(nameIdFormat);
+    
+    return nid;
+  }
+  
+  private Subject buildSubject() {
 
     @SuppressWarnings("unchecked")
     SAMLObjectBuilder<Subject> builder =
 	(SAMLObjectBuilder<Subject>) builderFactory.getBuilder(Subject.DEFAULT_ELEMENT_NAME);
 
-
     Subject sub = builder.buildObject();
 
-    sub.setNameID(nid);
+    sub.setNameID(buildNameID());
 
     sub.getSubjectConfirmations().add(buildSubjectConfirmation());
 

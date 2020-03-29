@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import static it.infn.mw.iam.api.scim.controller.utils.ValidationHelper.handleVa
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +55,8 @@ import it.infn.mw.iam.api.scim.provisioning.paging.ScimPageRequest;
 @Transactional
 public class ScimGroupController extends ScimControllerSupport{
   
+  public static final String INVALID_GROUP_MSG = "Invalid Scim Group";
+  
   private Set<String> parseAttributes(final String attributesParameter) {
 
     Set<String> result = new HashSet<>();
@@ -73,7 +74,7 @@ public class ScimGroupController extends ScimControllerSupport{
   @Autowired
   ScimGroupProvisioning groupProvisioningService;
 
-  @PreAuthorize("#oauth2.hasScope('scim:read') or hasRole('ADMIN')")
+  @PreAuthorize("#oauth2.hasScope('scim:read') or hasRole('ADMIN') or #iam.isGroupManager(#id)")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET,
       produces = ScimConstants.SCIM_CONTENT_TYPE)
   public ScimGroup getGroup(@PathVariable final String id) {
@@ -111,7 +112,7 @@ public class ScimGroupController extends ScimControllerSupport{
   public ScimGroup create(@RequestBody @Validated final ScimGroup group,
       final BindingResult validationResult) {
 
-    handleValidationError("Invalid Scim Group", validationResult);
+    handleValidationError(INVALID_GROUP_MSG, validationResult);
     return groupProvisioningService.create(group);
   }
 
@@ -122,13 +123,13 @@ public class ScimGroupController extends ScimControllerSupport{
   public ScimGroup replaceGroup(@PathVariable final String id,
       @RequestBody @Validated final ScimGroup group, final BindingResult validationResult) {
 
-    handleValidationError("Invalid Scim Group", validationResult);
+    handleValidationError(INVALID_GROUP_MSG, validationResult);
 
     return groupProvisioningService.replace(id, group);
 
   }
 
-  @PreAuthorize("#oauth2.hasScope('scim:write') or hasRole('ADMIN')")
+  @PreAuthorize("#oauth2.hasScope('scim:write') or hasRole('ADMIN') or #iam.isGroupManager(#id)")
   @RequestMapping(value = "/{id}", method = RequestMethod.PATCH,
       consumes = ScimConstants.SCIM_CONTENT_TYPE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -136,12 +137,12 @@ public class ScimGroupController extends ScimControllerSupport{
       @RequestBody @Validated final ScimGroupPatchRequest groupPatchRequest,
       final BindingResult validationResult) {
 
-    handleValidationError("Invalid Scim Group", validationResult);
+    handleValidationError(INVALID_GROUP_MSG, validationResult);
 
     groupProvisioningService.update(id, groupPatchRequest.getOperations());
   }
 
-  @PreAuthorize("#oauth2.hasScope('scim:write') or hasRole('ADMIN')")
+  @PreAuthorize("#oauth2.hasScope('scim:write') or hasRole('ADMIN') or #iam.isGroupManager(#id)")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteGroup(@PathVariable final String id) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.mitre.discovery.util.WebfingerURLNormalizer;
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
 import org.mitre.oauth2.model.PKCEAlgorithm;
 import org.mitre.oauth2.service.SystemScopeService;
+import org.mitre.oauth2.web.DeviceEndpoint;
 import org.mitre.oauth2.web.IntrospectionEndpoint;
 import org.mitre.oauth2.web.RevocationEndpoint;
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
@@ -298,7 +299,8 @@ public class IamDiscoveryEndpoint {
         "password", 
         "urn:ietf:params:oauth:grant-type:jwt-bearer",
         "urn:ietf:params:oauth:grant_type:redelegate",
-        "urn:ietf:params:oauth:grant-type:token-exchange");
+        "urn:ietf:params:oauth:grant-type:token-exchange",
+        "urn:ietf:params:oauth:grant-type:device_code");
     // @formatter:on
 
     Map<String, Object> m = new HashMap<>();
@@ -391,6 +393,7 @@ public class IamDiscoveryEndpoint {
     m.put("code_challenge_methods_supported",
         Lists.newArrayList(PKCEAlgorithm.plain.getName(), PKCEAlgorithm.S256.getName()));
 
+    m.put("device_authorization_endpoint", baseUrl + DeviceEndpoint.URL);
     model.addAttribute(JsonEntityView.ENTITY, m);
 
     return JsonEntityView.VIEWNAME;

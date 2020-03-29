@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ import org.mockito.Mockito;
 import org.springframework.security.authentication.DisabledException;
 
 import it.infn.mw.iam.authn.DefaultInactiveAccountAuthenticationHandler;
-import it.infn.mw.iam.core.IamProperties;
 import it.infn.mw.iam.core.IamRegistrationRequestStatus;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.model.IamRegistrationRequest;
 
 
 public class InactiveAccountHandlerTests {
+  
+  public static final String ORG_NAME = "indigo-dc";
   
   @Test
   public void inactiveAccountHandlerSilentlyIgnoresActiveAccount() {
@@ -41,7 +42,7 @@ public class InactiveAccountHandlerTests {
     Mockito.when(account.isActive()).thenReturn(true);
 
     DefaultInactiveAccountAuthenticationHandler handler =
-        new DefaultInactiveAccountAuthenticationHandler(IamProperties.INSTANCE);
+        new DefaultInactiveAccountAuthenticationHandler(ORG_NAME);
 
     handler.handleInactiveAccount(account);
 
@@ -54,7 +55,7 @@ public class InactiveAccountHandlerTests {
 
     Mockito.when(account.isActive()).thenReturn(false);
     DefaultInactiveAccountAuthenticationHandler handler =
-        new DefaultInactiveAccountAuthenticationHandler(IamProperties.INSTANCE);
+        new DefaultInactiveAccountAuthenticationHandler(ORG_NAME);
 
     try {
 
@@ -77,7 +78,7 @@ public class InactiveAccountHandlerTests {
     Mockito.when(req.getStatus()).thenReturn(IamRegistrationRequestStatus.NEW);
 
     DefaultInactiveAccountAuthenticationHandler handler =
-        new DefaultInactiveAccountAuthenticationHandler(IamProperties.INSTANCE);
+        new DefaultInactiveAccountAuthenticationHandler(ORG_NAME);
 
     try {
 
@@ -100,7 +101,7 @@ public class InactiveAccountHandlerTests {
     Mockito.when(req.getStatus()).thenReturn(IamRegistrationRequestStatus.CONFIRMED);
 
     DefaultInactiveAccountAuthenticationHandler handler =
-        new DefaultInactiveAccountAuthenticationHandler(IamProperties.INSTANCE);
+        new DefaultInactiveAccountAuthenticationHandler(ORG_NAME);
 
     try {
 
@@ -123,7 +124,7 @@ public class InactiveAccountHandlerTests {
     Mockito.when(req.getStatus()).thenReturn(IamRegistrationRequestStatus.APPROVED);
 
     DefaultInactiveAccountAuthenticationHandler handler =
-        new DefaultInactiveAccountAuthenticationHandler(IamProperties.INSTANCE);
+        new DefaultInactiveAccountAuthenticationHandler(ORG_NAME);
 
     try {
 

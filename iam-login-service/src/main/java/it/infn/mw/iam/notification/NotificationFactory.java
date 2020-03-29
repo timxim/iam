@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package it.infn.mw.iam.notification;
 
+import java.util.Optional;
+
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.model.IamEmailNotification;
 import it.infn.mw.iam.persistence.model.IamGroupRequest;
@@ -26,7 +28,7 @@ public interface NotificationFactory {
 
   IamEmailNotification createAccountActivatedMessage(IamRegistrationRequest request);
 
-  IamEmailNotification createRequestRejectedMessage(IamRegistrationRequest request);
+  IamEmailNotification createRequestRejectedMessage(IamRegistrationRequest request, Optional<String> motivation);
 
   IamEmailNotification createAdminHandleRequestMessage(IamRegistrationRequest request);
 

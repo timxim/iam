@@ -1,6 +1,7 @@
 version: '2'
 
 services:
+
   db_data:
     image: busybox
     volumes:
@@ -8,15 +9,16 @@ services:
     command: /bin/true
 
   db:
-    container_name: db
-    image: mariadb:latest
+    container_name: mariadb
+    image: mariadb
     volumes_from:
       - db_data
+
     # The setting below enables custom configuration
     # that turns on the MySQL query log
     # volumes:
     #   - ./compose/mariadb:/etc/mysql/conf.d
-
+    
     environment:
       TZ: Europe/Rome
       MYSQL_ROOT_PASSWORD: pwd
@@ -32,6 +34,8 @@ services:
     # build:
     #  context: ./docker/trust-anchors
     command: /bin/true
+    volumes:
+      - /etc/grid-security/certificates
 
   iam-be:
     container_name: iam-be
@@ -49,8 +53,6 @@ services:
       IAM_USE_FORWARDED_HEADERS: "true"
       IAM_NOTIFICATION_DISABLE: "true"
 
-      # IAM_TOMCAT_ACCESS_LOG_ENABLED: "true"
-
       IAM_DB_HOST: db
       IAM_DB_USERNAME: iam
       IAM_DB_PASSWORD: pwd
@@ -58,12 +60,23 @@ services:
       IAM_GOOGLE_CLIENT_ID: ${IAM_GOOGLE_CLIENT_ID}
       IAM_GOOGLE_CLIENT_SECRET: ${IAM_GOOGLE_CLIENT_SECRET}
 
+      IAM_IAM_TEST_CLIENT_ID: ${IAM_IAM_TEST_CLIENT_ID}
+      IAM_IAM_TEST_CLIENT_SECRET: ${IAM_IAM_TEST_CLIENT_SECRET}
+
       # IAM_SAML_IDP_METADATA: file:///code/compose/metadata/test-idp.cloud.cnaf.infn.it.metadata.xml 
       # IAM_SAML_ENTITY_ID: urn:iam:iam-devel
       # IAM_SAML_ENTITY_ID: https://iam.local.io
+      
+      IAM_RCAUTH_ENABLED: "false"
+      IAM_RCAUTH_CLIENT_ID: ${IAM_RCAUTH_CLIENT_ID}
+      IAM_RCAUTH_CLIENT_SECRET: ${IAM_RCAUTH_CLIENT_SECRET}
+      IAM_RCAUTH_ISSUER: ${IAM_RCAUTH_ISSUER}
 
     ports:
       - "1044:1044"
+
+    depends_on:
+      - db
 
     volumes_from:
       - trust
@@ -71,6 +84,10 @@ services:
     volumes:
       - .:/code:ro
       - /dev/urandom:/dev/random
+      - ./compose/metadata/iam.local.io.metadata.xml:/indigo-iam/iam.local.io.metadata.xml:ro
+      - ./compose/metadata/spid-idp.example.metadata.xml:/indigo-iam/spid-idp.example.metadata.xml:ro
+      - ./compose/custom-saml/application-saml.yml:/indigo-iam/config/application-saml.yml:ro
+      #- ./compose/multiple-oidc-providers/application.yml:/indigo-iam/config/application.yml
 
   client:
     build:
@@ -88,6 +105,7 @@ services:
       IAM_CLIENT_ISSUER: https://iam.local.io/
       IAM_CLIENT_REDIRECT_URIS: https://iam.local.io/iam-test-client/openid_connect_login
       IAM_CLIENT_USE_FORWARD_HEADERS: "true"
+      #IAM_CLIENT_EXT_AUTHN_HINT: saml:exampleIdp
       IAM_CLIENT_JAR: /code/iam-test-client/target/iam-test-client.jar
 
     ports:
@@ -126,10 +144,3 @@ services:
       default:
         aliases:
           - iam.local.io
-
-# browser:
-#   image: jess/firefox
-#   container_name: browser
-#
-#   environment:
-#     DISPLAY: 172.17.8.1:0

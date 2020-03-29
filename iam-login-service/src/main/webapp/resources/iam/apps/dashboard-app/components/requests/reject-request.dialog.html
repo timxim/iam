@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="modal-header">
+    <h3 class="modal-title">Reject request(s)?</h3>
+</div>
+<div class="modal-body">
+    <form name="rejReq">
+        <div
+            ng-class="{'has-error': rejReq.motivation.$dirty && rejReq.motivation.$invalid, 'has-success': rejReq.motivation.$dirty && rejReq.motivation.$valid}">
+            <input id="rej-req" name="motivation" class="form-control" type="text" required ng-minlength="5"
+                ng-maxlength="50" placeholder="Motivate your decision..." ng-model="$ctrl.motivation">
+            <span class="help-block" ng-show="rejReq.motivation.$dirty && rejReq.motivation.$error.minlength">Please
+                express yourself with at least 5 characters</span>
+            <span class="help-block" ng-show="rejReq.motivation.$dirty && rejReq.motivation.$error.maxlength">Too
+                verbose, there's a 50 chars limit on the motivation</span>
+        </div>
+    </form>
+    <br>
+    <p> This motivation will be sent to {{$ctrl.userFullName}}.</p>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" type="button" id="modal-btn-confirm" ng-disabled="!$ctrl.motivation"
+        ng-click="$ctrl.reject()">Reject request</button>
+    <button class="btn btn-warning" type="button" id="modal-btn-cancel" ng-click="$ctrl.cancel()">Cancel</button>
+</div>

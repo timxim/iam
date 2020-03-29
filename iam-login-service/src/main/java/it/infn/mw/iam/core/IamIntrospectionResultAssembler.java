@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 
 import it.infn.mw.iam.persistence.model.IamGroup;
 import it.infn.mw.iam.persistence.model.IamUserInfo;
+import it.infn.mw.iam.persistence.repository.UserInfoAdapter;
 
 public class IamIntrospectionResultAssembler extends DefaultIntrospectionResultAssembler {
   private static final Logger LOGGER =
@@ -47,6 +48,9 @@ public class IamIntrospectionResultAssembler extends DefaultIntrospectionResultA
   
   @Value("${iam.issuer}")
   private String oidcIssuer;
+  
+  @Value("${iam.organisation.name}")
+  private String organisationName;
 
   @Override
   public Map<String, Object> assembleFrom(OAuth2AccessTokenEntity accessToken, UserInfo userInfo,
@@ -77,7 +81,7 @@ public class IamIntrospectionResultAssembler extends DefaultIntrospectionResultA
     if (userInfo != null) {
       if (scopes.contains("profile")) {
 
-        IamUserInfo iamUserInfo = (IamUserInfo) userInfo;
+        IamUserInfo iamUserInfo = ((UserInfoAdapter) userInfo).getUserinfo();
 
         if (!iamUserInfo.getGroups().isEmpty()) {
 
@@ -87,7 +91,7 @@ public class IamIntrospectionResultAssembler extends DefaultIntrospectionResultA
 
         result.put(NAME, iamUserInfo.getName());
         result.put(PREFERRED_USERNAME, iamUserInfo.getPreferredUsername());
-        result.put(ORGANISATION_NAME, IamProperties.INSTANCE.getOrganisationName());
+        result.put(ORGANISATION_NAME, organisationName);
       }
 
       if (scopes.contains("email")) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.saml.metadata.MetadataManager;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.infn.mw.iam.authn.saml.MetadataLookupService;
@@ -35,7 +36,7 @@ public class SamlRefreshMetadataController {
   MetadataLookupService metadataLookupService;
 
   @PreAuthorize("hasRole('ADMIN')")
-  @RequestMapping(value="/saml/refresh-metadata")
+  @RequestMapping(value="/saml/refresh-metadata", method = RequestMethod.GET)
   public String refreshMetadata() {
     metadataManager.setRefreshRequired(true);
     metadataManager.refreshMetadata();

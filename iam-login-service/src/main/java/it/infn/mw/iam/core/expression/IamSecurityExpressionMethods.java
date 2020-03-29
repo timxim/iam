@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  */
 package it.infn.mw.iam.core.expression;
 
+import static it.infn.mw.iam.authn.ExternalAuthenticationHandlerSupport.EXT_AUTHN_UNREGISTERED_USER_AUTH;
+
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 
 import it.infn.mw.iam.api.account.AccountUtils;
 import it.infn.mw.iam.api.requests.GroupRequestUtils;
+import it.infn.mw.iam.authn.AbstractExternalAuthenticationToken;
 import it.infn.mw.iam.core.IamGroupRequestStatus;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.model.IamGroupRequest;
@@ -39,13 +42,28 @@ public class IamSecurityExpressionMethods {
     this.groupRequestUtils = groupRequestUtils;
   }
 
-  public boolean isGroupManager(String groupUuid) {
+  public boolean isExternallyAuthenticatedWithIssuer(String issuer) {
+    if (authentication.getAuthorities().contains(EXT_AUTHN_UNREGISTERED_USER_AUTH)) {
 
+      @SuppressWarnings("rawtypes")
+      AbstractExternalAuthenticationToken token =
+          (AbstractExternalAuthenticationToken) authentication;
+      return token.toExernalAuthenticationRegistrationInfo().getIssuer().equals(issuer);
+    }
+
+    return false;
+  }
+
+  public boolean isAGroupManager() {
     return authentication.getAuthorities()
       .stream()
-      .filter(a -> a.getAuthority().equals("ROLE_GM:" + groupUuid))
-      .findAny()
-      .isPresent();
+      .anyMatch(a -> a.getAuthority().startsWith("ROLE_GM:"));
+  }
+
+  public boolean isGroupManager(String groupUuid) {
+    return authentication.getAuthorities()
+      .stream()
+      .anyMatch(a -> a.getAuthority().equals("ROLE_GM:" + groupUuid));
   }
 
   public boolean isUser(String userUuid) {
@@ -53,19 +71,27 @@ public class IamSecurityExpressionMethods {
     return account.isPresent() && account.get().getUuid().equals(userUuid);
   }
 
-  public boolean userOwnsGroupRequest(String requestId) {
-    Optional<IamGroupRequest> groupRequest = groupRequestUtils.getGroupRequestUuid(requestId);
+  public boolean canManageGroupRequest(String requestId) {
+    Optional<IamGroupRequest> groupRequest = groupRequestUtils.getOptionalGroupRequest(requestId);
+
+    return groupRequest.isPresent() && isGroupManager(groupRequest.get().getGroup().getUuid());
+  }
+
+  public boolean canAccessGroupRequest(String requestId) {
+    Optional<IamGroupRequest> groupRequest = groupRequestUtils.getOptionalGroupRequest(requestId);
     Optional<IamAccount> userAccount = accountUtils.getAuthenticatedUserAccount();
 
+
     return userAccount.isPresent() && groupRequest.isPresent()
-        && groupRequest.get().getAccount().getUuid().equals(userAccount.get().getUuid());
+        && (groupRequest.get().getAccount().getUuid().equals(userAccount.get().getUuid())
+            || isGroupManager(groupRequest.get().getGroup().getUuid()));
   }
 
   public boolean userCanDeleteGroupRequest(String requestId) {
-    Optional<IamGroupRequest> groupRequest = groupRequestUtils.getGroupRequestUuid(requestId);
+    Optional<IamGroupRequest> groupRequest = groupRequestUtils.getOptionalGroupRequest(requestId);
 
-    return groupRequest.isPresent() && userOwnsGroupRequest(requestId)
-        && IamGroupRequestStatus.PENDING.equals(groupRequest.get().getStatus());
+    return groupRequest.isPresent() && ((canAccessGroupRequest(requestId)
+        && IamGroupRequestStatus.PENDING.equals(groupRequest.get().getStatus()))
+        || canManageGroupRequest(requestId));
   }
-
 }

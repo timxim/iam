@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,10 @@ import com.google.common.base.Strings;
 import it.infn.mw.iam.api.account_linking.AccountLinkingConstants;
 import it.infn.mw.iam.api.scim.exception.IllegalArgumentException;
 import it.infn.mw.iam.authn.ExternalAuthenticationRegistrationInfo.ExternalAuthenticationType;
+import it.infn.mw.iam.authn.error.InvalidExternalAuthenticationTokenError;
 import it.infn.mw.iam.authn.x509.IamX509AuthenticationCredential;
 
-public class ExternalAuthenticationHandlerSupport implements AccountLinkingConstants{
+public class ExternalAuthenticationHandlerSupport implements AccountLinkingConstants {
 
   public static final String ACCCOUNT_LINKING_BASE_RESOURCE = "/iam/account-linking";
 
@@ -57,9 +58,11 @@ public class ExternalAuthenticationHandlerSupport implements AccountLinkingConst
       ExternalAuthenticationHandlerSupport.class.getName() + ".DONE";
 
   public static final String EXT_AUTHN_UNREGISTERED_USER_ROLE = "EXT_AUTH_UNREGISTERED";
+  
+  public static final String EXT_AUTHN_UNREGISTERED_USER_AUTH_STRING = "ROLE_" + EXT_AUTHN_UNREGISTERED_USER_ROLE;
 
   public static final GrantedAuthority EXT_AUTHN_UNREGISTERED_USER_AUTH =
-      new SimpleGrantedAuthority("ROLE_" + EXT_AUTHN_UNREGISTERED_USER_ROLE);
+      new SimpleGrantedAuthority(EXT_AUTHN_UNREGISTERED_USER_AUTH_STRING);
 
   public static final String EXT_AUTH_ERROR_KEY =
       ExternalAuthenticationHandlerSupport.class.getName() + ".ERROR";
@@ -84,7 +87,7 @@ public class ExternalAuthenticationHandlerSupport implements AccountLinkingConst
   protected boolean isExternalUnregisteredUser(Authentication authentication) {
 
     if (!(authentication instanceof AbstractExternalAuthenticationToken<?>)) {
-      throw new RuntimeException("Invalid token type: " + authentication);
+      throw new InvalidExternalAuthenticationTokenError("Invalid token type: " + authentication);
     }
 
     return authentication.getAuthorities().contains(EXT_AUTHN_UNREGISTERED_USER_AUTH);
@@ -165,17 +168,11 @@ public class ExternalAuthenticationHandlerSupport implements AccountLinkingConst
 
     switch (type) {
       case OIDC:
-        redirectUrl = "/openid_connect_login";
+        redirectUrl = buildRedirectUrl("/openid_connect_login", "iss", externalIdpId);
         break;
 
       case SAML:
-        redirectUrl = "/saml/login";
-        if (!Strings.isNullOrEmpty(externalIdpId)) {
-          redirectUrl = UriComponentsBuilder.fromUriString("/saml/login")
-            .queryParam("idpId", externalIdpId)
-            .build()
-            .toString();
-        }
+        redirectUrl = buildRedirectUrl("/saml/login", "idp", externalIdpId);
         break;
 
       default:
@@ -183,8 +180,6 @@ public class ExternalAuthenticationHandlerSupport implements AccountLinkingConst
     }
 
     return redirectUrl;
-
-
   }
 
   protected String getAccountLinkingForwardTarget(HttpServletRequest request) {
@@ -201,6 +196,12 @@ public class ExternalAuthenticationHandlerSupport implements AccountLinkingConst
       .setAuthentication(getAccountLinkingSavedAuthentication(session));
   }
 
-
-
+  private String buildRedirectUrl(String baseUrl, String param, String value) {
+    String retval = baseUrl;
+    if (!Strings.isNullOrEmpty(value)) {
+      retval =
+          UriComponentsBuilder.fromUriString(baseUrl).queryParam(param, value).build().toString();
+    }
+    return retval;
+  }
 }

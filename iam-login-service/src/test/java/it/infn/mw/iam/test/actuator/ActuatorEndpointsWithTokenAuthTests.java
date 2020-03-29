@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package it.infn.mw.iam.test.actuator;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,8 +54,10 @@ public class ActuatorEndpointsWithTokenAuthTests {
 
   private static final String STATUS_UP = "UP";
 
-  private static final Set<String> SENSITIVE_ENDPOINTS = Sets.newHashSet("/metrics", "/configprops",
-      "/env", "/mappings", "/flyway", "/autoconfig", "/beans", "/dump", "/trace");
+  private static final Set<String> SENSITIVE_ENDPOINTS = Sets.newHashSet("/metrics");
+
+  private static final Set<String> PRIVILEGED_ENDPOINTS = Sets.newHashSet("/configprops", "/env",
+      "/mappings", "/flyway", "/autoconfig", "/beans", "/dump", "/trace");
 
   @Value("${spring.mail.host}")
   private String mailHost;
@@ -67,7 +69,7 @@ public class ActuatorEndpointsWithTokenAuthTests {
   private WebApplicationContext context;
 
   private MockMvc mvc;
-  
+
   @Autowired
   private MockOAuth2Filter mockOAuth2Filter;
 
@@ -75,10 +77,10 @@ public class ActuatorEndpointsWithTokenAuthTests {
   public void setup() {
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
   }
-  
+
   @After
   public void cleanupOAuthUser() {
     mockOAuth2Filter.cleanupSecurityContext();
@@ -135,6 +137,33 @@ public class ActuatorEndpointsWithTokenAuthTests {
       // @formatter:off
       mvc.perform(get(endpoint))
         .andExpect(status().isOk())
+        ;
+      // @formatter:on
+    }
+  }
+
+  @Test
+  @WithMockOAuthUser(clientId = "client-cred",
+      scopes = {"openid", "profile", "read-tasks", "write-tasks"})
+  public void testPrivilegedEndpointWithTokenAsUser() throws Exception {
+    for (String endpoint : PRIVILEGED_ENDPOINTS) {
+      // @formatter:off
+      mvc.perform(get(endpoint))
+        .andExpect(status().isForbidden())
+        ;
+      // @formatter:on
+    }
+  }
+
+  @Test
+  @WithMockOAuthUser(clientId = "client-cred",
+      scopes = {"openid", "profile", "read-tasks", "write-tasks"}, user = ADMIN_USERNAME,
+      authorities = {ADMIN_AUTORITY})
+  public void testPrivilegedEndpointWithTokenAsAdmin() throws Exception {
+    for (String endpoint : PRIVILEGED_ENDPOINTS) {
+      // @formatter:off
+      mvc.perform(get(endpoint))
+        .andExpect(status().isForbidden())
         ;
       // @formatter:on
     }

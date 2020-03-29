@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import it.infn.mw.iam.persistence.model.IamScopePolicy;
 
 public class IamScopePolicySerializer extends JsonSerializer<IamScopePolicy>{
+  
 
   @Override
   public void serialize(IamScopePolicy value, JsonGenerator gen, SerializerProvider serializers)
@@ -40,8 +41,25 @@ public class IamScopePolicySerializer extends JsonSerializer<IamScopePolicy>{
     
     gen.writeStringField("description", value.getDescription());
     gen.writeStringField("rule", value.getRule().name());
-    gen.writeObjectField("account", value.getAccount());
-    gen.writeObjectField("group", value.getGroup());
+    
+    
+    if (isNull(value.getAccount())) {
+      gen.writeNullField("account");
+    } else {
+      gen.writeObjectFieldStart("account");
+      gen.writeStringField("uuid", value.getAccount().getUuid());
+      gen.writeStringField("name", value.getAccount().getUsername());
+      gen.writeEndObject();
+    }
+    
+    if (isNull(value.getGroup())) {
+      gen.writeNullField("group");
+    } else {
+      gen.writeObjectFieldStart("grop");
+      gen.writeStringField("uuid", value.getGroup().getUuid());
+      gen.writeStringField("name", value.getGroup().getName());
+      gen.writeEndObject();
+    }
     
     gen.writeArrayFieldStart("scopes");
     for (String s: value.getScopes()){

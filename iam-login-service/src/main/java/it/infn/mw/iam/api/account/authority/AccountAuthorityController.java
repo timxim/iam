@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.infn.mw.iam.api.common.ErrorDTO;
+import it.infn.mw.iam.api.common.NoSuchAccountError;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
 
@@ -59,12 +60,12 @@ public class AccountAuthorityController {
 
   protected IamAccount findAccountById(String id) {
     return iamAccountRepository.findByUuid(id)
-      .orElseThrow(() -> new AccountNotFoundError(format("No account found for id '%s'", id)));
+      .orElseThrow(() -> new NoSuchAccountError(format("No account found for id '%s'", id)));
   }
 
   protected IamAccount findAccountByName(String name) {
     return iamAccountRepository.findByUsername(name)
-      .orElseThrow(() -> new AccountNotFoundError(format("No account found for name '%s'", name)));
+      .orElseThrow(() -> new NoSuchAccountError(format("No account found for name '%s'", name)));
   }
 
   @PreAuthorize("hasRole('USER')")
@@ -114,7 +115,7 @@ public class AccountAuthorityController {
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
-  @ExceptionHandler(AccountNotFoundError.class)
+  @ExceptionHandler(NoSuchAccountError.class)
   public ErrorDTO accountNotFoundError(HttpServletRequest req, Exception ex) {
     return ErrorDTO.fromString(ex.getMessage());
   }

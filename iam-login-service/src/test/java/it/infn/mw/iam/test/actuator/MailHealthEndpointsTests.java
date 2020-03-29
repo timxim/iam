@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,18 @@ import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -38,6 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.test.util.MockMailHealthIndicator;
+import it.infn.mw.iam.test.util.WithAnonymousUser;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(
@@ -61,12 +64,12 @@ public class MailHealthEndpointsTests {
 
   @Value("${health.mailProbe.path}")
   private String mailEndpointPath;
-  
-  
+
+
 
   @Autowired
   private WebApplicationContext context;
-  
+
   @Autowired
   private MockMailHealthIndicator mhi;
 
@@ -77,13 +80,19 @@ public class MailHealthEndpointsTests {
 
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
 
+    SecurityContextHolder.clearContext();
   }
 
+  @After
+  public void cleanup() {
+    SecurityContextHolder.clearContext();
+  }
 
   @Test
+  @WithAnonymousUser
   public void testMailHealthEndpointWithSmtp() throws Exception {
 
     mhi.setActive(true);
@@ -100,7 +109,7 @@ public class MailHealthEndpointsTests {
   public void testMailHealthEndpointWithSmtpAsUser() throws Exception {
 
     mhi.setActive(true);
-    
+
     // @formatter:off
     mvc.perform(get(mailEndpointPath))
       .andExpect(status().isOk())
@@ -117,7 +126,7 @@ public class MailHealthEndpointsTests {
     mhi.setActive(true);
     mhi.setMailhost(mailHost);
     mhi.setMailPort(mailPort);
-    
+
     // @formatter:off
     mvc.perform(get(mailEndpointPath))
       .andExpect(status().isOk())

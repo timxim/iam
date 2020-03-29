@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,17 @@ import static it.infn.mw.iam.core.IamRegistrationRequestStatus.NEW;
 import java.util.EnumSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import it.infn.mw.iam.core.IamProperties;
 import it.infn.mw.iam.core.IamRegistrationRequestStatus;
 import it.infn.mw.iam.persistence.model.IamAccount;
 
 @Component
 public class DefaultInactiveAccountAuthenticationHandler
     implements InactiveAccountAuthenticationHander {
-
-  final IamProperties iamProps;
 
   public static final String ACCOUNT_SUSPENDED_MESSAGE = "Your account is suspended";
 
@@ -43,17 +41,18 @@ public class DefaultInactiveAccountAuthenticationHandler
   public final String waitingApprovalMsg;
 
   @Autowired
-  public DefaultInactiveAccountAuthenticationHandler(IamProperties properties) {
-    this.iamProps = properties;
+  public DefaultInactiveAccountAuthenticationHandler(
+      @Value("${iam.organisation.name}") String organisationName) {
+
 
     waitingConfirmationMsg = String.format("Your registration request to %s was submitted "
         + "successfully, but you haven't confirmed it yet. Check your inbox, you should have received a message with "
-        + "a confirmation URL", iamProps.getOrganisationName());
+        + "a confirmation URL", organisationName);
 
-    waitingApprovalMsg =
-        String.format("Your registration request to %s was submitted and confirmed successfully, "
-            + "and is now waiting for administrator approval. As soon as your request is approved you will receive a "
-            + "confirmation email", iamProps.getOrganisationName());
+    waitingApprovalMsg = String
+      .format("Your registration request to %s was submitted and confirmed successfully, "
+          + "and is now waiting for administrator approval. As soon as your request is approved you will receive a "
+          + "confirmation email", organisationName);
   }
 
   protected boolean hasOngoingRegistrationRequest(IamAccount account) {

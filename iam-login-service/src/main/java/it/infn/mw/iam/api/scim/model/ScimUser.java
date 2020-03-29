@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Set;
 
 import javax.validation.Valid;
+import javax.validation.groups.Default;
 
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -37,16 +39,17 @@ import com.google.common.base.Preconditions;
 @JsonFilter("attributeFilter")
 public class ScimUser extends ScimResource {
 
-  public interface NewUserValidation {
+  public interface NewUserValidation extends Default {
   }
 
-  public interface UpdateUserValidation {
+  public interface UpdateUserValidation extends Default {
   }
 
   public static final String USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
   public static final String RESOURCE_TYPE = "User";
 
   @NotBlank(groups = {NewUserValidation.class})
+  @Length(max = 128)
   private final String userName;
 
   @JsonFilter("passwordFilter")
@@ -70,6 +73,8 @@ public class ScimUser extends ScimResource {
   private final List<ScimEmail> emails;
 
   private final List<ScimAddress> addresses;
+
+  @Valid
   private final List<ScimPhoto> photos;
 
   private final Set<ScimGroupRef> groups;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import it.infn.mw.iam.api.scim.converter.DefaultScimResourceLocationProvider;
 import it.infn.mw.iam.api.scim.converter.ScimResourceLocationProvider;
 import it.infn.mw.iam.api.scope_policy.DefaultScopePolicyConverter;
 import it.infn.mw.iam.api.scope_policy.IamAccountRefDTO;
-import it.infn.mw.iam.api.scope_policy.IamGroupRefDTO;
+import it.infn.mw.iam.api.scope_policy.GroupRefDTO;
 import it.infn.mw.iam.api.scope_policy.InvalidScopePolicyError;
 import it.infn.mw.iam.api.scope_policy.ScopePolicyDTO;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
@@ -90,7 +90,7 @@ public class ScopePolicyConverterTests {
   public void testInvalidGroupIdTriggersException(){
     ScopePolicyDTO policyDTO = new ScopePolicyDTO();
     
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
     groupRef.setUuid(UUID.randomUUID().toString());
     
     policyDTO.setGroup(groupRef);

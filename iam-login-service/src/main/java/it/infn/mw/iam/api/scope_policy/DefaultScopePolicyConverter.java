@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class DefaultScopePolicyConverter implements IamScopePolicyConverter {
     }
 
     if (sp.getGroup() != null) {
-      IamGroupRefDTO gr = new IamGroupRefDTO();
+      GroupRefDTO gr = new GroupRefDTO();
 
       gr.setLocation(resourceLocationProvider.groupLocation(sp.getGroup().getUuid()));
       gr.setName(sp.getGroup().getName());

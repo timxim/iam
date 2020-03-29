@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package it.infn.mw.iam.test.registration;
 
 import static it.infn.mw.iam.test.ext_authn.saml.SamlAuthenticationTestSupport.DEFAULT_IDP_ID;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -41,8 +42,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.infn.mw.iam.IamLoginService;
-import it.infn.mw.iam.core.IamRegistrationRequestStatus;
 import it.infn.mw.iam.persistence.model.IamAccount;
+import it.infn.mw.iam.persistence.model.IamOidcId;
+import it.infn.mw.iam.persistence.model.IamSamlId;
 import it.infn.mw.iam.persistence.repository.IamAccountRepository;
 import it.infn.mw.iam.registration.PersistentUUIDTokenGenerator;
 import it.infn.mw.iam.registration.RegistrationRequestDto;
@@ -101,8 +103,7 @@ public class ExternalAuthenticationRegistrationTests {
     mvc.perform(get("/registration/confirm/{token}", token)).andExpect(status().isOk());
 
     mvc
-      .perform(post("/registration/{uuid}/{decision}", request.getUuid(),
-          IamRegistrationRequestStatus.APPROVED)
+      .perform(post("/registration/approve/{uuid}", request.getUuid())
             .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN", "USER")))
       .andExpect(status().isOk());
 
@@ -111,8 +112,10 @@ public class ExternalAuthenticationRegistrationTests {
     assertNotNull(account);
 
     assertThat(account.getOidcIds().size(), equalTo(1));
-    assertThat(account.getOidcIds().get(0).getSubject(), equalTo("test-oidc-user"));
-    assertThat(account.getOidcIds().get(0).getIssuer(), equalTo("test-oidc-issuer"));
+    
+    IamOidcId id = new IamOidcId("test-oidc-issuer", "test-oidc-user");
+    assertThat(account.getOidcIds(), hasItem(id));
+    assertThat(account.getOidcIds(), hasItem(id));
 
     accountRepository.delete(account);
   }
@@ -145,8 +148,7 @@ public class ExternalAuthenticationRegistrationTests {
     mvc.perform(get("/registration/confirm/{token}", token)).andExpect(status().isOk());
 
     mvc
-      .perform(post("/registration/{uuid}/{decision}", request.getUuid(),
-          IamRegistrationRequestStatus.APPROVED)
+      .perform(post("/registration/approve/{uuid}", request.getUuid())
             .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN", "USER")))
       .andExpect(status().isOk());
 
@@ -155,9 +157,10 @@ public class ExternalAuthenticationRegistrationTests {
     assertNotNull(account);
 
     assertThat(account.getSamlIds().size(), equalTo(1));
-
-    assertThat(account.getSamlIds().get(0).getIdpId(), equalTo(DEFAULT_IDP_ID));
-    assertThat(account.getSamlIds().get(0).getUserId(), equalTo("test-saml-user"));
+    
+    IamSamlId firstSamlId = account.getSamlIds().iterator().next();
+    assertThat(firstSamlId.getIdpId(), equalTo(DEFAULT_IDP_ID));
+    assertThat(firstSamlId.getUserId(), equalTo("test-saml-user"));
 
     accountRepository.delete(account);
   }

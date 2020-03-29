@@ -2,6 +2,9 @@ package it.infn.mw.tc;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -10,11 +13,15 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
+import org.mitre.openid.connect.client.service.AuthRequestOptionsService;
+import org.mitre.openid.connect.config.ServerConfiguration;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,6 +52,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
+import com.google.common.base.Strings;
+
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = {ErrorMvcAutoConfiguration.class})
 @RestController
@@ -60,6 +69,9 @@ public class IamTestClientApplication extends WebSecurityConfigurerAdapter {
 
   @Autowired
   ClientHttpRequestFactory requestFactory;
+  
+  @Value("${iam.extAuthnHint}")
+  String extAuthnHint;
 
   public static void main(String[] args) {
 
@@ -77,10 +89,38 @@ public class IamTestClientApplication extends WebSecurityConfigurerAdapter {
     }
 
   }
+  
+  public class ExtAuthnRequestOptionsService implements AuthRequestOptionsService{
+
+    final String authnHint;
+    
+    public ExtAuthnRequestOptionsService(String hint) {
+      this.authnHint = hint;
+    }
+    
+    @Override
+    public Map<String, String> getOptions(ServerConfiguration server, RegisteredClient client,
+        HttpServletRequest request) {
+      Map<String, String> m = new HashMap<>();
+      m.put("ext_authn_hint", authnHint);
+      return m;
+    }
+
+    @Override
+    public Map<String, String> getTokenOptions(ServerConfiguration server, RegisteredClient client,
+        HttpServletRequest request) {
+      return Collections.emptyMap();
+    }
+    
+  }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
+    
+    if (!Strings.isNullOrEmpty(extAuthnHint)) {
+      oidcFilter.setAuthRequestOptionsService(new ExtAuthnRequestOptionsService(extAuthnHint));
+    }
+    
     // @formatter:off
     http.antMatcher("/**").authorizeRequests()
         .antMatchers("/", "/user", "/error", "/openid_connect_login**", "/webjars/**").permitAll()

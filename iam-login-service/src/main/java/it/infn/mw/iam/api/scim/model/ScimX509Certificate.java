@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,11 @@ public class ScimX509Certificate {
 
   @JsonSerialize(using = JsonDateSerializer.class)
   private final Date lastModified;
+  
+  private final boolean hasProxyCertificate;
+  
+  @JsonSerialize(using = JsonDateSerializer.class)
+  private final Date proxyExpirationTime;
 
   @JsonCreator
   private ScimX509Certificate(@JsonProperty("label") String display, @JsonProperty("primary") Boolean primary,
@@ -60,6 +65,8 @@ public class ScimX509Certificate {
     this.issuerDn = issuerDn;
     this.pemEncodedCertificate = pemEncodedCertificate;
     this.created = this.lastModified = null;
+    this.hasProxyCertificate = false;
+    this.proxyExpirationTime = null;
   }
 
   private ScimX509Certificate(Builder b) {
@@ -70,6 +77,8 @@ public class ScimX509Certificate {
     this.created = b.created;
     this.lastModified = b.lastModified;
     this.pemEncodedCertificate = b.pemEncodedCertificate;
+    this.hasProxyCertificate = b.hasProxyCertificate;
+    this.proxyExpirationTime = b.proxyExpirationTime;
   }
 
   public String getDisplay() {
@@ -99,6 +108,16 @@ public class ScimX509Certificate {
   public Date getLastModified() {
     return lastModified;
   }
+  
+  public boolean isHasProxyCertificate() {
+    return hasProxyCertificate;
+  }
+
+  public Date getProxyExpirationTime() {
+    return proxyExpirationTime;
+  }
+
+
 
 
   public static class Builder {
@@ -116,6 +135,10 @@ public class ScimX509Certificate {
     private Date created;
 
     private Date lastModified;
+    
+    private boolean hasProxyCertificate;
+    
+    private Date proxyExpirationTime;
 
     public Builder display(String display) {
       this.display = display;
@@ -150,6 +173,16 @@ public class ScimX509Certificate {
 
     public Builder pemEncodedCertificate(String certificate) {
       this.pemEncodedCertificate = certificate;
+      return this;
+    }
+    
+    public Builder hasProxyCertificate(boolean hasProxy) {
+      this.hasProxyCertificate = hasProxy;
+      return this;
+    }
+    
+    public Builder proxyExpirationTime(Date et) {
+      this.proxyExpirationTime = et;
       return this;
     }
 

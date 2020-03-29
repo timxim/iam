@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePropertySource;
+
+import it.infn.mw.iam.core.error.StartupError;
 
 
 public class IamBanner extends ResourceBanner {
@@ -60,7 +62,7 @@ public class IamBanner extends ResourceBanner {
     try {
       resolvers.add(getIamInfoPropertyResolver());
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new StartupError("Error initializing banner property resolvers", e);
     }
     return resolvers;
   }

@@ -7,6 +7,8 @@ import org.mitre.jose.keystore.JWKSetKeyStore;
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService;
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,6 +19,8 @@ import com.nimbusds.jose.jwk.JWKSet;
 
 public class IamJWKCacheSetService extends JWKSetCacheService {
 
+  public static final Logger LOG = LoggerFactory.getLogger(IamJWKCacheSetService.class);
+  
   final ClientHttpRequestFactory requestFactory;
 
   final LoadingCache<String, JWTSigningAndValidationService> validators;
@@ -41,6 +45,7 @@ public class IamJWKCacheSetService extends JWKSetCacheService {
     try {
       return validators.get(jwksUri);
     } catch (ExecutionException e) {
+      LOG.warn(e.getMessage(),e);
       return null;
     }
   }

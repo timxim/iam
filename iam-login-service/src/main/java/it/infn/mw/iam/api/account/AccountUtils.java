@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,5 +74,9 @@ public class AccountUtils {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
  
     return getAuthenticatedUserAccount(auth);
+  }
+  
+  public Optional<IamAccount> getByAccountId(String accountId){
+    return accountRepo.findByUuid(accountId);
   }
 }

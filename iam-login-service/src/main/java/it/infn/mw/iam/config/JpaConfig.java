@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
@@ -57,14 +56,14 @@ public class JpaConfig extends JpaBaseConfiguration {
     map.put("eclipselink.logging.level", "INFO");
     map.put("eclipselink.logging.level.sql", "OFF");
     map.put("eclipselink.cache.shared.default", "false");
-    
+
     if (System.getProperty("iam.show_sql") != null) {
       map.put("eclipselink.logging.level", "FINE");
       map.put("eclipselink.logging.level.sql", "FINE");
       map.put("eclipselink.logging.parameters", "true");
     }
 
-    if (System.getProperty("iam.generate-ddl-sql-script") != null){
+    if (System.getProperty("iam.generate-ddl-sql-script") != null) {
       map.put("eclipselink.ddl-generation.output-mode", "sql-script");
       map.put("eclipselink.ddl-generation", "create-tables");
       map.put("eclipselink.create-ddl-jdbc-file-name", "ddl.sql");
@@ -96,32 +95,17 @@ public class JpaConfig extends JpaBaseConfiguration {
   @Bean
   @Profile("no-flyway")
   public FlywayMigrationStrategy flywayMigrationStrategy() {
-
-    return new FlywayMigrationStrategy() {
-
-      @Override
-      public void migrate(final Flyway flyway) {
-
-        return;
-
-      }
-    };
+    return f -> {
+      //  empty on purpose
+    }; 
   }
 
   @Bean
   @Profile("flyway-repair")
   public FlywayMigrationStrategy flywayRepairStrategy() {
-
-    return new FlywayMigrationStrategy() {
-
-      @Override
-      public void migrate(final Flyway flyway) {
-
-        flyway.repair();
-        flyway.migrate();
-        return;
-
-      }
+    return f -> {
+      f.repair();
+      f.migrate();
     };
   }
 }

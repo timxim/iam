@@ -1,0 +1,68 @@
+<!--
+
+    Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://spid-idp.example:8443">
+  <md:IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIIDMjCCAhqgAwIBAgIJAKATRH56Yg1eMA0GCSqGSIb3DQEBCwUAMBMxETAPBgNV
+BAMMCHNwaWQtaWRwMB4XDTE5MDEyMjA5NDQzNFoXDTI0MDEyMTA5NDQzNFowEzER
+MA8GA1UEAwwIc3BpZC1pZHAwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+AQC3GetH9vSsdzTXzWbw9MVll2lwSRnqJ8zwc/aBhj/LFMFyNUHz7EAmptaz3/3i
+J54nnrvRiPQL9CsnVZC9BSM50RjKt6berfHPXNZjjvYdHy5sKS1jfsR6hAobsdYi
+ipCVgUa/YBXyFjLsNFUjK666j0NH1CjyaPqk9uu6ADyW4o+yuQLphPTUIbunfGZ0
+ns8yB7D79Ks+SY0+YomJwgaq8lcJz9v8wpMUfHQITnpw9cHOuLzgSjS41EEeY1Yf
+J5NtmIQY3qiv40orHfc6ee6lGVXIoEfy1YIll2EIS6fXmsa4doi7uKV8ndeCh0O4
++A9zPUBGvXEm9U+fOzERJ2XDAgMBAAGjgYgwgYUwHQYDVR0OBBYEFMNU8hvgPzIJ
+hCyPrtpAKl6S7bp8MEMGA1UdIwQ8MDqAFMNU8hvgPzIJhCyPrtpAKl6S7bp8oRek
+FTATMREwDwYDVQQDDAhzcGlkLWlkcIIJAKATRH56Yg1eMA8GA1UdEwEB/wQFMAMB
+Af8wDgYDVR0PAQH/BAQDAgIEMA0GCSqGSIb3DQEBCwUAA4IBAQA8aqhDAxz9M9US
+FXAUSK7GLVyShFPejsc7okin+r9PsrzMhE05qXKg3HCAs/jQDiA4yyGYcw9HwAUA
+nLX+BeVkilhGv2T+VCfVg2B4Z3K78OWN0lHGsFThFoHzZYh2t91dGsTFGsceJKck
+GK/l2v95foAlbm7eL/dcZNkI1cTE6hUcdw/dwHHC1r6HrNDl5/WRDIQVZaKCf5RW
+Na4k8ZOoWt3iymCKo3w362g538ucVYk9ssO/CBbVjDm0ujIctaNL6L5ngr8Xx3PO
+SXzBY8fdAZf/6HSQhwg2nYIClli+H4Bym6xYWBqifHNI/KBTPj4Ky1suci88tRdm
+RJUaXmnY
+</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://spid-idp.example:8443/sso"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://spid-idp.example:8443/sso"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://spid-idp.example:8443/slo"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://spid-idp.example:8443/slo"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="dateOfBirth" xsi:type="xs:date" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="gender" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="registeredOffice" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="name" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fiscalNumber" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="countyOfBirth" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="placeOfBirth" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="ivaCode" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="familyName" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="companyName" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="spidCode" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="idCard" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="digitalAddress" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="email" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="address" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="mobilePhone" xsi:type="xs:string" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+    <saml:Attribute xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="expirationDate" xsi:type="xs:date" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+  </md:IDPSSODescriptor>
+</md:EntityDescriptor>

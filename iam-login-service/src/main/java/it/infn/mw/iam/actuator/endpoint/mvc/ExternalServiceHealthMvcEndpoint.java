@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Maps;
@@ -49,7 +50,7 @@ public class ExternalServiceHealthMvcEndpoint
     statusMapping.put("DOWN", HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  @RequestMapping(produces = APPLICATION_JSON_VALUE)
+  @RequestMapping(produces = APPLICATION_JSON_VALUE, method = RequestMethod.GET)
   @ResponseBody
   public Object getServiceHealth(AbstractAuthenticationToken auth) {
     if (!getDelegate().isEnabled()) {

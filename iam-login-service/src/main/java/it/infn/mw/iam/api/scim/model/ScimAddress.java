@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package it.infn.mw.iam.api.scim.model;
+
+import javax.annotation.Generated;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -106,6 +108,7 @@ public class ScimAddress {
     return primary;
   }
 
+  @Generated("Eclipse")
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -121,6 +124,7 @@ public class ScimAddress {
     return result;
   }
 
+  @Generated("Eclipse")
   @Override
   public boolean equals(Object obj) {
     if (this == obj)

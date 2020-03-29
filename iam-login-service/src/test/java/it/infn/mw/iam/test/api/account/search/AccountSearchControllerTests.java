@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  */
 package it.infn.mw.iam.test.api.account.search;
 
+import static it.infn.mw.iam.api.account.search.AbstractSearchController.DEFAULT_ITEMS_PER_PAGE;
 import static it.infn.mw.iam.api.account.search.AccountSearchController.ACCOUNT_SEARCH_ENDPOINT;
-import static it.infn.mw.iam.api.account.search.AccountSearchController.ITEMS_PER_PAGE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,17 +35,20 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.data.domain.Page;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.api.common.ListResponseDTO;
 import it.infn.mw.iam.api.common.OffsetPageable;
@@ -83,7 +88,7 @@ public class AccountSearchControllerTests {
   public void setup() {
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mockOAuth2Filter.cleanupSecurityContext();
-    mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).alwaysDo(print())
+    mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).alwaysDo(log())
         .build();
   }
 
@@ -104,9 +109,9 @@ public class AccountSearchControllerTests {
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
         new TypeReference<ListResponseDTO<ScimUser>>() {});
     assertThat(response.getTotalResults(), equalTo(expectedSize));
-    assertThat(response.getResources().size(), equalTo(ITEMS_PER_PAGE));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
     assertThat(response.getStartIndex(), equalTo(1));
-    assertThat(response.getItemsPerPage(), equalTo(ITEMS_PER_PAGE));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
   }
 
   @Test
@@ -118,13 +123,13 @@ public class AccountSearchControllerTests {
 
     ListResponseDTO<ScimUser> response = mapper.readValue(
         mvc.perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
-            .param("startIndex", String.valueOf(ITEMS_PER_PAGE))).andExpect(status().isOk())
+            .param("startIndex", String.valueOf(DEFAULT_ITEMS_PER_PAGE))).andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString(),
         new TypeReference<ListResponseDTO<ScimUser>>() {});
     assertThat(response.getTotalResults(), equalTo(expectedSize));
-    assertThat(response.getResources().size(), equalTo(ITEMS_PER_PAGE));
-    assertThat(response.getStartIndex(), equalTo(ITEMS_PER_PAGE));
-    assertThat(response.getItemsPerPage(), equalTo(ITEMS_PER_PAGE));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getStartIndex(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
   }
 
   @Test
@@ -171,7 +176,7 @@ public class AccountSearchControllerTests {
       UnsupportedEncodingException, IOException, Exception {
 
     OffsetPageable op = new OffsetPageable(0, 10);
-    Page<IamAccount> page = accountRepository.findByFilter("%admin%", op);
+    Page<IamAccount> page = accountRepository.findByFilter("admin", op);
 
     ListResponseDTO<ScimUser> response = mapper.readValue(mvc
         .perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
@@ -184,6 +189,7 @@ public class AccountSearchControllerTests {
     assertThat(response.getItemsPerPage(), equalTo(2));
 
     List<ScimUser> expectedUsers = Lists.newArrayList();
+
     page.getContent().forEach(u -> expectedUsers.add(userConverter.dtoFromEntity(u)));
     assertThat(response.getResources().containsAll(expectedUsers), equalTo(true));
   }
@@ -193,7 +199,7 @@ public class AccountSearchControllerTests {
   public void getCountOfFilteredUsers() throws JsonParseException, JsonMappingException,
       UnsupportedEncodingException, IOException, Exception {
 
-    long expectedSize = accountRepository.countByFilter("%admin%");
+    long expectedSize = accountRepository.countByFilter("admin");
 
     ListResponseDTO<ScimUser> response =
         mapper.readValue(
@@ -208,9 +214,16 @@ public class AccountSearchControllerTests {
   }
 
   @Test
-  public void getUsersAsNoAuthenticatedUser() throws Exception {
+  public void getUsersAsAnonymousUser() throws Exception {
     mvc.perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE))
         .andExpect(status().isUnauthorized());
+  }
+  
+  @Test
+  @WithMockUser(username="test", roles= {"USER", "GM:c617d586-54e6-411d-8e38-649677980001"})
+  public void getUsersAsGroupManager() throws Exception {
+    mvc.perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE))
+    .andExpect(status().isOk());
   }
 
   @Test
@@ -218,5 +231,78 @@ public class AccountSearchControllerTests {
   public void getUsersAsAuthenticatedUser() throws Exception {
     mvc.perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockOAuthUser(user = "admin", authorities = {"ROLE_ADMIN"})
+  public void getUsersWithNegativeStartIndex() throws JsonParseException, JsonMappingException,
+      UnsupportedEncodingException, IOException, Exception {
+
+    long expectedSize = accountRepository.count();
+
+    ListResponseDTO<ScimUser> response = mapper.readValue(mvc
+        .perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
+            .param("startIndex", "-1"))
+        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+        new TypeReference<ListResponseDTO<ScimUser>>() {});
+    assertThat(response.getTotalResults(), equalTo(expectedSize));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getStartIndex(), equalTo(1));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+  }
+
+  @Test
+  @WithMockOAuthUser(user = "admin", authorities = {"ROLE_ADMIN"})
+  public void getUsersWithStartIndexZero() throws JsonParseException, JsonMappingException,
+      UnsupportedEncodingException, IOException, Exception {
+
+    long expectedSize = accountRepository.count();
+
+    ListResponseDTO<ScimUser> response = mapper.readValue(mvc
+        .perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
+            .param("startIndex", "0"))
+        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+        new TypeReference<ListResponseDTO<ScimUser>>() {});
+    assertThat(response.getTotalResults(), equalTo(expectedSize));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getStartIndex(), equalTo(1));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+  }
+
+  @Test
+  @WithMockOAuthUser(user = "admin", authorities = {"ROLE_ADMIN"})
+  public void getUsersWithCountBiggerThanPageSize() throws JsonParseException, JsonMappingException,
+      UnsupportedEncodingException, IOException, Exception {
+
+    long expectedSize = accountRepository.count();
+
+    ListResponseDTO<ScimUser> response =
+        mapper.readValue(
+            mvc.perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
+                .param("count", "" + DEFAULT_ITEMS_PER_PAGE * 2)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(),
+            new TypeReference<ListResponseDTO<ScimUser>>() {});
+    assertThat(response.getTotalResults(), equalTo(expectedSize));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getStartIndex(), equalTo(1));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+  }
+
+  @Test
+  @WithMockOAuthUser(user = "admin", authorities = {"ROLE_ADMIN"})
+  public void getUsersWithNegativeCount() throws JsonParseException, JsonMappingException,
+      UnsupportedEncodingException, IOException, Exception {
+
+    long expectedSize = accountRepository.count();
+
+    ListResponseDTO<ScimUser> response = mapper.readValue(mvc
+        .perform(get(ACCOUNT_SEARCH_ENDPOINT).contentType(APPLICATION_JSON_CONTENT_TYPE)
+            .param("count", "-1"))
+        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+        new TypeReference<ListResponseDTO<ScimUser>>() {});
+    assertThat(response.getTotalResults(), equalTo(expectedSize));
+    assertThat(response.getResources().size(), equalTo(DEFAULT_ITEMS_PER_PAGE));
+    assertThat(response.getStartIndex(), equalTo(1));
+    assertThat(response.getItemsPerPage(), equalTo(DEFAULT_ITEMS_PER_PAGE));
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  */
 package it.infn.mw.iam.test.repository;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -31,10 +33,13 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.TransactionSystemException;
+
+import com.google.common.collect.Lists;
 
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.persistence.model.IamGroup;
@@ -49,7 +54,8 @@ public class IamGroupRepositoryTests {
 
   private IamGroup parent;
   private IamGroup child;
-
+  
+  private static final String TEST_001_GROUP_ID = "c617d586-54e6-411d-8e38-649677980001";
 
   @After
   public void tearDown() {
@@ -134,7 +140,25 @@ public class IamGroupRepositoryTests {
     subgroups = groupRepository.findSubgroups(parent);
     assertEquals(1, subgroups.size());
   }
+  
+  @Test
+  public void lookupGroupsByName() {
+    List<IamGroup> groups =groupRepository.findByNameIgnoreCaseContaining("00");
+    assertThat(groups.isEmpty(), is(false));
+    assertThat(groups.size(), is(9));
+    
+    groups =groupRepository.findByNameIgnoreCaseContaining("reuwyuhisajd");
+    assertThat(groups.isEmpty(), is(true));
+    
+  }
 
+  @Test
+  public void lookupGroupsByUuidNotInUuidSet() {
+    List<IamGroup> allGroups  = Lists.newArrayList(groupRepository.findAll());
+    List<IamGroup> groups = groupRepository.findByUuidNotIn(Sets.newSet(TEST_001_GROUP_ID));
+    assertThat(groups.isEmpty(), is(false));
+    assertThat(groups.size(), equalTo(allGroups.size() -1 ));
+  }
 
   private IamGroup createGroup(IamGroup parentGroup) {
     String uuid = UUID.randomUUID().toString();

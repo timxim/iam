@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,12 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import java.util.UUID;
-
-import org.springframework.transaction.annotation.Transactional;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -44,6 +42,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -52,8 +51,8 @@ import com.google.common.collect.Sets;
 
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.api.scim.converter.ScimResourceLocationProvider;
+import it.infn.mw.iam.api.scope_policy.GroupRefDTO;
 import it.infn.mw.iam.api.scope_policy.IamAccountRefDTO;
-import it.infn.mw.iam.api.scope_policy.IamGroupRefDTO;
 import it.infn.mw.iam.api.scope_policy.ScopePolicyDTO;
 import it.infn.mw.iam.persistence.model.IamAccount;
 import it.infn.mw.iam.persistence.model.IamGroup;
@@ -100,7 +99,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
   @Before
   public void setup() {
     mvc = MockMvcBuilders.webAppContextSetup(context)
-      .alwaysDo(print())
+      .alwaysDo(log())
       .apply(springSecurity())
       .build();
   }
@@ -232,7 +231,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     ScopePolicyDTO sp = new ScopePolicyDTO();
     sp.setRule(IamScopePolicy.Rule.DENY.name());
 
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
 
     groupRef.setUuid(UUID.randomUUID().toString());
 
@@ -242,7 +241,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     mvc.perform(post("/iam/scope_policies").content(serializedSp).contentType(APPLICATION_JSON))
       .andExpect(status().isBadRequest())
       .andExpect(jsonPath("$.error")
-        .value(Matchers.equalTo("Invalid scope policy: no IAM group found for the given UUID")));
+        .value(Matchers.equalTo("no group found for the given UUID")));
   }
 
   @Test
@@ -257,7 +256,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     ScopePolicyDTO sp = new ScopePolicyDTO();
     sp.setRule(IamScopePolicy.Rule.DENY.name());
 
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
     groupRef.setUuid(analysisGroup.getUuid());
     sp.setGroup(groupRef);
 
@@ -390,7 +389,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     sp.setRule(IamScopePolicy.Rule.DENY.name());
     sp.setScopes(Sets.newHashSet("scim:read", "scim:write"));
 
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
     groupRef.setUuid(analysisGroup.getUuid());
     sp.setGroup(groupRef);
 
@@ -562,7 +561,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     sp.setDescription(description);
     sp.setRule(IamScopePolicy.Rule.DENY.name());
 
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
     groupRef.setUuid(analysisGroup.getUuid());
     sp.setGroup(groupRef);
 
@@ -586,7 +585,7 @@ public class ScopePolicyApiIntegrationTests extends ScopePolicyTestUtils {
     sp.setRule(IamScopePolicy.Rule.DENY.name());
     sp.setScopes(Sets.newHashSet(SCIM_READ, SCIM_WRITE));
 
-    IamGroupRefDTO groupRef = new IamGroupRefDTO();
+    GroupRefDTO groupRef = new GroupRefDTO();
     groupRef.setUuid(analysisGroup.getUuid());
     sp.setGroup(groupRef);
 

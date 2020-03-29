@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,11 @@ public interface RegistrationRequestService {
 
   List<RegistrationRequestDto> listPendingRequests();
 
-  RegistrationRequestDto updateStatus(String uuid, IamRegistrationRequestStatus status);
-
   RegistrationRequestDto confirmRequest(String confirmationKey);
+  
+  RegistrationRequestDto rejectRequest(String requestUuid, Optional<String> motivation);
+  
+  RegistrationRequestDto approveRequest(String requestUuid);
 
   Boolean usernameAvailable(String username);
 

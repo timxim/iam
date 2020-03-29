@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Test;
@@ -43,6 +41,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.infn.mw.iam.IamLoginService;
 import it.infn.mw.iam.api.scim.model.ScimEmail.ScimEmailType;
@@ -131,7 +130,7 @@ public class ScimUserProvisioningTests extends ScimUserTestSupport {
     assertThat(user.getEmails().get(0).getType(), equalTo(ScimEmailType.work));
     assertThat(user.getEmails().get(0).getPrimary(), equalTo(true));
     assertThat(user.getGroups(), hasSize(equalTo(2)));
-    assertThat(user.getGroups(), contains(productionRef, analysisRef));
+    assertThat(user.getGroups(), contains(analysisRef, productionRef));
     assertThat(user.getIndigoUser().getOidcIds(), hasSize(greaterThan(0)));
     assertThat(user.getIndigoUser().getOidcIds().get(0).getIssuer(),
         equalTo("https://accounts.google.com"));
@@ -170,7 +169,7 @@ public class ScimUserProvisioningTests extends ScimUserTestSupport {
     scimUtils.postUser(user, HttpStatus.BAD_REQUEST)
       .andExpect(jsonPath("$.status", equalTo("400")))
       .andExpect(jsonPath("$.detail",
-          containsString("scimUser.emails[0].value : not a well-formed email address")));
+          containsString("Please provide a valid email address")));
   }
 
   @Test

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -70,7 +70,7 @@ public class ScimGroupProvisioningPatchReplaceTests extends ScimGroupPatchUtils 
   public void initTests() throws Exception {
     mvc = MockMvcBuilders.webAppContextSetup(context)
       .apply(springSecurity())
-      .alwaysDo(print())
+      .alwaysDo(log())
       .build();
 
     engineers = addTestGroup("engineers");
@@ -106,7 +106,7 @@ public class ScimGroupProvisioningPatchReplaceTests extends ScimGroupPatchUtils 
       .andExpect(jsonPath("$.id", equalTo(engineers.getId())))
       .andExpect(jsonPath("$.displayName", equalTo(engineers.getDisplayName())))
       .andExpect(jsonPath("$.members", hasSize(equalTo(1))))
-      .andExpect(jsonPath("$.members[0].display", equalTo(lennon.getDisplayName())))
+      .andExpect(jsonPath("$.members[0].display", equalTo("John Lennon")))
       .andExpect(jsonPath("$.members[0].value", equalTo(lennon.getId())))
       .andExpect(jsonPath("$.members[0].$ref", equalTo(lennon.getMeta().getLocation())));
 
@@ -154,7 +154,7 @@ public class ScimGroupProvisioningPatchReplaceTests extends ScimGroupPatchUtils 
       .andExpect(jsonPath("$.id", equalTo(engineers.getId())))
       .andExpect(jsonPath("$.displayName", equalTo(engineers.getDisplayName())))
       .andExpect(jsonPath("$.members", hasSize(equalTo(1))))
-      .andExpect(jsonPath("$.members[0].display", equalTo(lennon.getDisplayName())))
+      .andExpect(jsonPath("$.members[0].display", equalTo("John Lennon")))
       .andExpect(jsonPath("$.members[0].value", equalTo(lennon.getId())))
       .andExpect(jsonPath("$.members[0].$ref", equalTo(lennon.getMeta().getLocation())));
 

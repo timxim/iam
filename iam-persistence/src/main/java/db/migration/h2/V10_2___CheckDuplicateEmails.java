@@ -43,8 +43,8 @@ public class V10_2___CheckDuplicateEmails implements SpringJdbcMigration {
 
     // Disable users with duplicate email
     if (!duplicateEmails.isEmpty()) {
-      LOG.warn("### DUPLICATE EMAIL WARNING ###");
-      LOG.warn("Found multiple accounts linked to the same email. "
+      LOG.debug("### DUPLICATE EMAIL WARNING ###");
+      LOG.debug("Found multiple accounts linked to the same email. "
           + "This upgrade script will change the email address for users");
 
       for (String email : duplicateEmails) {
@@ -67,7 +67,7 @@ public class V10_2___CheckDuplicateEmails implements SpringJdbcMigration {
               uniqueUpdatedEmail, accountId);
 
           if (updateResult == 1) {
-            LOG.warn("Updated email for IAM account {} (uuid: {}). New email: {}", accountId,
+            LOG.debug("Updated email for IAM account {} (uuid: {}). New email: {}", accountId,
                 accountUuid, uniqueUpdatedEmail);
           }
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,40 @@
  */
 package it.infn.mw.iam.authn.saml.util;
 
+import static it.infn.mw.iam.authn.saml.util.NameIdUserIdentifierResolver.NAMEID_RESOLVER;
+import static it.infn.mw.iam.authn.saml.util.PersistentNameIdUserIdentifierResolver.PERSISTENT_NAMEID_RESOLVER;
+import static it.infn.mw.iam.authn.saml.util.Saml2Attribute.EPTID;
+
+import java.util.EnumSet;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableMap;
 
 public class SamlIdResolvers {
 
-  public static final String NAME_ID_NAME = "nameID";
-  
-  private ImmutableMap<String, SamlUserIdentifierResolver> registeredResolvers;
+  private Map<String, NamedSamlUserIdentifierResolver> registeredResolvers;
 
   public SamlIdResolvers() {
-    ImmutableMap.Builder<String, SamlUserIdentifierResolver> builder =
-        ImmutableMap.<String, SamlUserIdentifierResolver>builder();
+    ImmutableMap.Builder<String, NamedSamlUserIdentifierResolver> builder =
+        ImmutableMap.<String, NamedSamlUserIdentifierResolver>builder();
 
-    for (Saml2Attribute a : Saml2Attribute.values()) {
+    for (Saml2Attribute a: EnumSet.complementOf(EnumSet.of(EPTID))) {
       builder.put(a.getAlias(), new AttributeUserIdentifierResolver(a));
     }
 
-    builder.put(NAME_ID_NAME, new NameIdUserIdentifierResolver());
+    // EPTID has its own resolver 
+    builder.put(EPTID.getAlias(), new EPTIDUserIdentifierResolver());
+    builder.put(PERSISTENT_NAMEID_RESOLVER, new PersistentNameIdUserIdentifierResolver());
+    builder.put(NAMEID_RESOLVER, new NameIdUserIdentifierResolver());
 
     registeredResolvers = builder.build();
   }
 
-  public SamlUserIdentifierResolver byAttribute(Saml2Attribute attribute) {
+  public NamedSamlUserIdentifierResolver byAttribute(Saml2Attribute attribute) {
     return registeredResolvers.get(attribute.getAlias());
   }
-  
-  public SamlUserIdentifierResolver byName(String name) {
+
+  public NamedSamlUserIdentifierResolver byName(String name) {
     return registeredResolvers.get(name);
   }
 

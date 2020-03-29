@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2018
+ * Copyright (c) Istituto Nazionale di Fisica Nucleare (INFN). 2016-2019
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package it.infn.mw.iam.config;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import java.util.Locale;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -39,7 +43,10 @@ import org.springframework.web.servlet.view.JstlView;
 import it.infn.mw.iam.core.util.PoliteJsonMessageSource;
 
 @Configuration
+// @EnableConfigurationProperties({IamProperties.class})
 public class MvcConfig extends WebMvcConfigurerAdapter {
+
+  public static final Logger LOG = LoggerFactory.getLogger(MvcConfig.class);
 
   @Autowired
   @Qualifier("mitreUserInfoInterceptor")
@@ -51,6 +58,9 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
   @Autowired
   AsyncHandlerInterceptor iamViewInfoInterceptor;
+
+  @Autowired
+  IamProperties iamProperties;
 
   @Override
   public void addInterceptors(final InterceptorRegistry registry) {
@@ -66,6 +76,16 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
     registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");
 
+    if (iamProperties.getLocalResources().isEnable()) {
+      if (isNullOrEmpty(iamProperties.getLocalResources().getLocation())) {
+        LOG.warn("Local resource serving enabled but path is null or empty!");
+      } else {
+       
+        LOG.info("Serving local resources from {}", iamProperties.getLocalResources().getLocation());
+        registry.addResourceHandler("/local-resources/**")
+          .addResourceLocations(iamProperties.getLocalResources().getLocation());
+      }
+    }
   }
 
   @Override

@@ -95,8 +95,8 @@ public class IamDynamicServerConfigurationService extends DynamicServerConfigura
         }
 
         if (!issuer.equals(o.get("issuer").getAsString())) {
-          logger.info("Issuer used for discover was " + issuer + " but final issuer is "
-              + o.get("issuer").getAsString());
+          logger.info("Issuer used for discover was {} but the final issuer is {}", issuer,  
+              o.get("issuer").getAsString());
         }
 
         conf.setIssuer(o.get("issuer").getAsString());

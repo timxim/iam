@@ -55,6 +55,18 @@
 <link
   rel="stylesheet"
   href="resources/iam/css/iam.css"></link>
+  
+  <style type="text/css">
+    #logo-container {
+       margin: auto;
+        margin-top: 10px;
+        width: ${loginPageConfiguration.logo.width}px;
+        height: ${loginPageConfiguration.logo.height}px;
+        background-size: ${loginPageConfiguration.logo.dimension}px;
+        background-image: url('${loginPageConfiguration.logo.url}');
+        background-repeat: no-repeat;
+    }
+  </style>
 
 </head>
 
@@ -86,7 +98,7 @@
 	}
 	
 	function getOrganisationName() {
-		return '${iamProperties.organisationName}';
+		return '${iamOrganisationName}';
 	}
 </script>
 
